@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  auth-library-app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: auth-library-app
+    tty: true 
+    volumes:
+      - .:/var/www/html
