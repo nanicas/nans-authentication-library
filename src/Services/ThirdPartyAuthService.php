@@ -22,24 +22,61 @@ class ThirdPartyAuthService
             $client = HTTPRequest::client();
             $data = [
                 'form_params' => $credentials,
+                'headers' => $this->defaultHeaders(),
             ];
 
             $url = 'oauth/token';
             $response = $client->post($this->baseAPI . $url, $data);
 
             if ($response->getStatusCode() == 200) {
-                $body = $response->getBody()->getContents();
-                return json_decode($body, true);
+                return HTTPRequest::getDefaultSuccess($response);
             }
 
             return HTTPRequest::getDefaultFail($response->getStatusCode());
         });
     }
-
-    public function configureAuthorizationToken(string $token)
+    
+    public function retrieveByToken(string $token)
     {
-        HTTPRequest::client()->setDefaultOption(
-            'headers/Authorization', 'Bearer ' . $token
-        );
+        return HTTPRequest::do(function () use ($token) {
+
+            $client = HTTPRequest::client();
+
+            $url = 'api/user';
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($token),
+                    )
+                ]
+            );
+            
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
+        });
+    }
+
+    private function defaultHeaders()
+    {
+        return [
+            'Accept' => 'application/json',
+        ];
+    }
+    
+    /**
+     * @param string $token
+     */
+    private function authorizationHeader(string $token)
+    {
+        return [
+            'Authorization' => 'Bearer ' . $token,
+        ];
     }
 }
