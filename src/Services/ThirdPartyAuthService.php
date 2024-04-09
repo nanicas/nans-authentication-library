@@ -35,6 +35,27 @@ class ThirdPartyAuthService
             return HTTPRequest::getDefaultFail($response->getStatusCode());
         });
     }
+
+    public function refreshToken(array $credentials)
+    {
+        return HTTPRequest::do(function () use ($credentials) {
+
+            $client = HTTPRequest::client();
+            $data = [
+                'form_params' => $credentials,
+                'headers' => $this->defaultHeaders(),
+            ];
+
+            $url = 'oauth/token';
+            $response = $client->post($this->baseAPI . $url, $data);
+
+            if ($response->getStatusCode() == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            return HTTPRequest::getDefaultFail($response->getStatusCode());
+        });
+    }
     
     public function retrieveByToken(string $token)
     {
