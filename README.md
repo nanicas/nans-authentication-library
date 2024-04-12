@@ -32,7 +32,7 @@ NANICAS_AUTHORIZATION_API_URL=auth-app:8000/
 ],
 ```
 
-## Adicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
+## dicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
 ```
 'auth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
 ```
@@ -42,3 +42,15 @@ NANICAS_AUTHORIZATION_API_URL=auth-app:8000/
 
 Após o comando, favor verificar no diretório `config` (raiz) se os arquivos foram transferidos:
 - `nanicas_authorization.php`
+
+## Adicionar a coluna ID no "fillable" na model que representa seu usuário autenticado
+```php
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    protected $fillable = [
+        'id', // It is necessary because Auth API returns this information
+```

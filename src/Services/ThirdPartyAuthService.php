@@ -83,8 +83,8 @@ class ThirdPartyAuthService
                 $this->baseAPI . $url,
                 [
                     'headers' => array_merge(
-                            $this->defaultHeaders(),
-                            $this->authorizationHeader($token),
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($token),
                     )
                 ]
             );
