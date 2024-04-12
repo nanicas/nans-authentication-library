@@ -1,6 +1,6 @@
 <?php
 
-namespace Nanicas\Frameworks\Laravel\Guards\CustomSession;
+namespace Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession;
 
 use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;

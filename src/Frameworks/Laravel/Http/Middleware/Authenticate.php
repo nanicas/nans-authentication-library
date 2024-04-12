@@ -1,6 +1,6 @@
 <?php
 
-namespace Nanicas\Frameworks\Laravel\Http\Middleware;
+namespace Nanicas\Auth\Frameworks\Laravel\Http\Middleware;
 
 use Closure;
 use Carbon\Carbon;

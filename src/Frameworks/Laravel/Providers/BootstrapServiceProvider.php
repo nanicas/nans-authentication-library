@@ -1,6 +1,6 @@
 <?php
 
-namespace Nanicas\Frameworks\Laravel\Providers;
+namespace Nanicas\Auth\Frameworks\Laravel\Providers;
 
 use Illuminate\Support\ServiceProvider;
 

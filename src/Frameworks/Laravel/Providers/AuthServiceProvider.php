@@ -1,10 +1,10 @@
 <?php
 
-namespace Nanicas\Frameworks\Laravel\Providers;
+namespace Nanicas\Auth\Frameworks\Laravel\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Nanicas\Frameworks\Laravel\Guards\CustomSession\CustomGuard;
-use Nanicas\Frameworks\Laravel\Guards\CustomSession\CustomUserProvider;
+use Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession\CustomGuard;
+use Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession\CustomUserProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Foundation\Application;
 

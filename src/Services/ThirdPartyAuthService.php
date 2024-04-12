@@ -8,6 +8,9 @@ class ThirdPartyAuthService
 {
     private string $baseAPI;
 
+    /**
+     * @param array $config
+     */
     public function __construct(
         array $config = [],
     )
@@ -15,6 +18,10 @@ class ThirdPartyAuthService
         $this->baseAPI = $config['API_URL'];
     }
 
+    /**
+     * @param array $credentials
+     * @return array
+     */
     public function retrieveByCredentials(array $credentials)
     {
         return HTTPRequest::do(function () use ($credentials) {
@@ -36,6 +43,10 @@ class ThirdPartyAuthService
         });
     }
 
+    /**
+     * @param array $credentials
+     * @return array
+     */
     public function refreshToken(array $credentials)
     {
         return HTTPRequest::do(function () use ($credentials) {
@@ -56,7 +67,11 @@ class ThirdPartyAuthService
             return HTTPRequest::getDefaultFail($response->getStatusCode());
         });
     }
-    
+
+    /**
+     * @param string $token
+     * @return array
+     */
     public function retrieveByToken(string $token)
     {
         return HTTPRequest::do(function () use ($token) {
@@ -68,12 +83,12 @@ class ThirdPartyAuthService
                 $this->baseAPI . $url,
                 [
                     'headers' => array_merge(
-                        $this->defaultHeaders(),
-                        $this->authorizationHeader($token),
+                            $this->defaultHeaders(),
+                            $this->authorizationHeader($token),
                     )
                 ]
             );
-            
+
             $statusCode = $response->getStatusCode();
             if ($statusCode == 200) {
                 return HTTPRequest::getDefaultSuccess($response);
@@ -84,15 +99,19 @@ class ThirdPartyAuthService
         });
     }
 
+    /**
+     * @return array
+     */
     private function defaultHeaders()
     {
         return [
             'Accept' => 'application/json',
         ];
     }
-    
+
     /**
      * @param string $token
+     * @return array
      */
     private function authorizationHeader(string $token)
     {
