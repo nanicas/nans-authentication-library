@@ -32,7 +32,7 @@ NANICAS_AUTHORIZATION_API_URL=auth-app:8000/
 ],
 ```
 
-## dicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
+## Adicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
 ```
 'auth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
 ```
