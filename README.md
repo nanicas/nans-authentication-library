@@ -2,7 +2,7 @@
 ```
 NANICAS_CLIENT_ID=<int>
 NANICAS_CLIENT_SECRET=<secret>
-NANICAS_AUTHORIZATION_API_URL=auth-app:8000/
+NANICAS_AUTHORIZATION_API_URL=authentication-app:8000/
 ```
 
 ## Adicionar os providers em config/app.php

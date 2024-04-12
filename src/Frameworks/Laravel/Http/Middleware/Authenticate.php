@@ -42,17 +42,7 @@ class Authenticate
             return $this->logout($request);
         }
 
-        /**
-         * @ref: https://laravel.com/docs/10.x/session#regenerating-the-session-id
-         * @question: https://stackoverflow.com/questions/78303780/laravel-10-session-regeneration-in-middleware-not-updating-values
-         * @question: https://stackoverflow.com/questions/78305978/laravel-get-old-session-id-on-refresh
-         * 
-         * Quando descomenta essa linha abaixo, por algum motivo, o framework 
-         * recupera os valores antigos da sessão, fazendo com que caia na condição:
-         * (!$authResponse['status']).
-         * 
-         * $request->session()->regenerate();
-         */
+        $request->session()->regenerate();
 
         LaravelAuthHelper::putAuthInfoInSession(
             $request->session(), $authResponse['body']

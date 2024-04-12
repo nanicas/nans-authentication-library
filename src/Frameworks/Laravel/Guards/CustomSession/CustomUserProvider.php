@@ -36,12 +36,24 @@ class CustomUserProvider extends EloquentUserProvider
             return null;
         }
 
-        $userResponse = $authService->retrieveByToken($authResponse['body']['access_token']);
+        $userResponse = $this->retrieveByAccessToken($authResponse['body']['access_token']);
+        if ($userResponse instanceof User) {
+            return $userResponse;
+        }
+
+        throw new RuntimeException(current($userResponse['message']));
+    }
+
+    public function retrieveByAccessToken(string $token): User|array
+    {
+        $authService = app()->make(ThirdPartyAuthService::class);
+
+        $userResponse = $authService->retrieveByToken($token);
         if ($userResponse['status']) {
             return new User($userResponse['body']);
         }
 
-        throw new RuntimeException(current($userResponse['message']));
+        return $userResponse;
     }
 
     public function validateCredentials(UserContract $user, array $credentials)
