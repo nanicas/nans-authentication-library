@@ -4,7 +4,8 @@ namespace Nanicas\Auth\Frameworks\Laravel\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession\CustomGuard;
-use Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession\CustomUserProvider;
+use Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession\CustomUserProvider as CustomUserSessionProvider;
+use Nanicas\Auth\Frameworks\Laravel\Guards\CustomToken\CustomUserProvider as CustomUserTokenProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Foundation\Application;
 
@@ -13,7 +14,14 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         Auth::provider('custom_session', function ($app, array $config) {
-            return new CustomUserProvider(
+            return new CustomUserSessionProvider(
+                $app->make('hash'),
+                $config['model']
+            );
+        });
+
+        Auth::provider('custom_token', function ($app, array $config) {
+            return new CustomUserTokenProvider(
                 $app->make('hash'),
                 $config['model']
             );

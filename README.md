@@ -21,12 +21,21 @@ NANICAS_AUTHORIZATION_API_URL=authentication-app:8000/
         'driver' => 'custom_session',
         'provider' => 'custom',
     ],
+    'api' => [
+        'driver' => 'token',
+        'provider' => 'custom_token',
+    ],
 ],
 ```
+
 ```
 'providers' => [
     'custom' => [
         'driver' => 'custom_session',
+        'model' => App\Models\User::class,
+    ],
+    'custom_token' => [
+        'driver' => 'custom_token',
         'model' => App\Models\User::class,
     ],
 ],
@@ -52,5 +61,5 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     protected $fillable = [
-        'id', // It is necessary because Auth API returns this information
+        'id', // It is necessary because Auth API returns this attribute
 ```

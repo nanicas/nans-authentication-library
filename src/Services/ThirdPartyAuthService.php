@@ -72,6 +72,37 @@ class ThirdPartyAuthService
      * @param string $token
      * @return array
      */
+    public function checkAccessToken(string $token)
+    {
+        return HTTPRequest::do(function () use ($token) {
+
+            $client = HTTPRequest::client();
+
+            $url = 'api/user/check';
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($token),
+                    )
+                ]
+            );
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
+        });
+    }
+
+    /**
+     * @param string $token
+     * @return array
+     */
     public function retrieveByToken(string $token)
     {
         return HTTPRequest::do(function () use ($token) {
