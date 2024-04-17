@@ -50,7 +50,9 @@ class CustomUserProvider extends EloquentUserProvider
 
         $userResponse = $authService->retrieveByToken($token);
         if ($userResponse['status']) {
-            return new User($userResponse['body']);
+            $user = new User($userResponse['body']);
+            $user->exists = true;
+            return $user;
         }
 
         return $userResponse;
