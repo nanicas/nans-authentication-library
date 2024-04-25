@@ -1,3 +1,10 @@
+> Atenção: Todos os comandos abaixo deverão ser executados em seu projeto principal.
+
+## Instalar dependência
+```
+composer require nanicas/auth:dev-main
+```
+
 ## Configurar o client e secret no .env
 ```
 NANICAS_CLIENT_ID=<int>
