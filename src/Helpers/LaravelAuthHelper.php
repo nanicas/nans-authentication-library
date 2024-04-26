@@ -29,17 +29,29 @@ class LaravelAuthHelper
     }
 
     /**
+     * @return string
+     */
+    public static function getClientAuthSessionKey(): string
+    {
+        $config = config(self::CONFIG_FILE_NAME);
+
+        return $config['SESSION_CLIENT_AUTH_KEY'];
+    }
+
+    /**
      * @param object $session
      * @param array $body
+     * @param string $sessionKey
      */
     public static function putAuthInfoInSession(
-        object $session, array $body
+        object $session, array $body, string $sessionKey = ''
     )
     {
         $expiresAt = self::defineExpiresAt($body['expires_in']);
         $body['expires_at_datetime'] = $expiresAt;
 
-        $session->put(self::getAuthSessionKey(), $body);
+        $sessionKey = (empty($sessionKey)) ? self::getAuthSessionKey() : $sessionKey;
+        $session->put($sessionKey, $body);
     }
 
     /**
