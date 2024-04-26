@@ -21,22 +21,22 @@ class AuthenticateClient
 
         $auth = $request->session()->get($config['SESSION_CLIENT_AUTH_KEY']);
         if (empty($auth)) {
-            $this->generateToken($request);
-            return $next($request);
+            return $this->generateToken($request, $next);
         }
 
         if (!Carbon::now()->greaterThanOrEqualTo($auth['expires_at_datetime'])) {
             return $next($request);
         }
 
-        $this->generateToken($request);
-        return $next($request);
+        return $this->generateToken($request, $next);
     }
 
     /**
      * @param Request $request
+     * @param Closure $next
+     * @return mixed
      */
-    private function generateToken(Request $request)
+    private function generateToken(Request $request, Closure $next)
     {
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
@@ -62,6 +62,8 @@ class AuthenticateClient
             $authResponse['body'],
             LaravelAuthHelper::getClientAuthSessionKey()
         );
+
+        return $next($request);
     }
 
     /**
