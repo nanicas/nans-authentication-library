@@ -113,7 +113,7 @@ class ThirdPartyAuthService extends AbstractClient
                 [
                     'headers' => array_merge(
                         $this->defaultHeaders(),
-                        $this->authorizationHeader($token),
+                        $this->authorizationHeader('Bearer ' . $token),
                     )
                 ]
             );
@@ -144,7 +144,7 @@ class ThirdPartyAuthService extends AbstractClient
                 [
                     'headers' => array_merge(
                         $this->defaultHeaders(),
-                        $this->authorizationHeader($token),
+                        $this->authorizationHeader('Bearer ' . $token),
                     )
                 ]
             );

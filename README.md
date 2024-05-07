@@ -66,7 +66,9 @@ return [
 
 ## Adicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
 ```php
-'auth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
+'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
+'auth_client.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateClient::class,
+'auth_personal.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
 ```
 
 ## Executar o comando de publicação dos arquivos de configuração
