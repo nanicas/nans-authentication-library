@@ -4,11 +4,10 @@ namespace Nanicas\Auth\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Services\AbstractClient;
 
-class ThirdPartyAuthService
+class ThirdPartyAuthService extends AbstractClient
 {
-    private string $baseAPI;
-
     public function __construct()
     {
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
@@ -17,7 +16,6 @@ class ThirdPartyAuthService
     }
 
     /**
-     * @param array $credentials
      * @return array
      */
     public function users()
@@ -164,29 +162,10 @@ class ThirdPartyAuthService
     /**
      * @return string
      */
-    private function getToken(): string
+    protected function getPersonalToken(): string
     {
-        return session()->get(LaravelAuthHelper::getClientAuthSessionKey())['access_token'];
-    }
+        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
-    /**
-     * @return array
-     */
-    private function defaultHeaders()
-    {
-        return [
-            'Accept' => 'application/json',
-        ];
-    }
-
-    /**
-     * @param string $token
-     * @return array
-     */
-    private function authorizationHeader(string $token)
-    {
-        return [
-            'Authorization' => 'Bearer ' . $token,
-        ];
+        return $config['AUTHENTICATION_PERSONAL_TOKEN'];
     }
 }

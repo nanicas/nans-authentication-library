@@ -4,15 +4,10 @@ namespace Nanicas\Auth\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Services\AbstractClient;
 
-class ThirdPartyPainelClient
+class ThirdPartyPainelClient extends AbstractClient
 {
-    private string $baseAPI;
-    private bool $personal;
-
-    /**
-     * @param array $config
-     */
     public function __construct()
     {
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
@@ -89,68 +84,13 @@ class ThirdPartyPainelClient
         });
     }
 
-    public function setPersonal(bool $personal)
-    {
-        $this->personal = $personal;
-    }
-
-    private function handleUrl(string $url)
-    {
-        if ($this->personal) {
-            return 'api/personal/' . $url;
-        }
-
-        return 'api/' . $url;
-    }
-
     /**
      * @return string
      */
-    private function getToken()
+    protected function getPersonalToken(): string
     {
-        if ($this->personal) {
-            $token = $this->getPersonalToken();
-        } else {
-            $token = $this->getAuthToken();
-        }
+        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
-        return $token;
-    }
-
-    /**
-     * @return string
-     */
-    private function getAuthToken(): string
-    {
-        return 'Bearer ' . session()->get(LaravelAuthHelper::getAuthSessionKey())['access_token'];
-    }
-
-    /**
-     * @return string
-     */
-    private function getPersonalToken(): string
-    {
-        return env('NANICAS_PAINEL_API_PERSONAL_TOKEN');
-    }
-
-    /**
-     * @return array
-     */
-    private function defaultHeaders(): array
-    {
-        return [
-            'Accept' => 'application/json',
-        ];
-    }
-
-    /**
-     * @param string $token
-     * @return array
-     */
-    private function authorizationHeader(string $token): array
-    {
-        return [
-            'Authorization' => $token,
-        ];
+        return $config['PAINEL_PERSONAL_TOKEN'];
     }
 }
