@@ -24,8 +24,8 @@ class CustomUserProvider extends EloquentUserProvider
         $authService = app()->make(ThirdPartyAuthService::class);
         $authResponse = $authService->retrieveByCredentials([
             'grant_type' => 'password',
-            'client_id' => $config['CLIENT_ID'],
-            'client_secret' => $config['CLIENT_SECRET'],
+            'client_id' => $config['AUTHENTICATION_OAUTH_CLIENT_ID'],
+            'client_secret' => $config['AUTHENTICATION_OAUTH_CLIENT_SECRET'],
             'username' => $credentials['email'],
             'password' => $credentials['password'],
             'scope' => '',

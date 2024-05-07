@@ -32,8 +32,8 @@ class Authenticate
         $authService = app()->make(ThirdPartyAuthService::class);
         $authResponse = $authService->refreshToken([
             'grant_type' => 'refresh_token',
-            'client_id' => $config['CLIENT_ID'],
-            'client_secret' => $config['CLIENT_SECRET'],
+            'client_id' => $config['AUTHENTICATION_OAUTH_CLIENT_ID'],
+            'client_secret' => $config['AUTHENTICATION_OAUTH_CLIENT_SECRET'],
             'refresh_token' => $auth['refresh_token'],
             'scope' => '',
         ]);
@@ -45,7 +45,8 @@ class Authenticate
         $request->session()->regenerate();
 
         LaravelAuthHelper::putAuthInfoInSession(
-            $request->session(), $authResponse['body']
+            $request->session(),
+            $authResponse['body']
         );
 
         return $next($request);
@@ -63,8 +64,8 @@ class Authenticate
 
         $request->session()->invalidate();
 
-        return $request->expectsJson() 
-            ? response()->json(['message' => 'Token expirado'], 401) 
+        return $request->expectsJson()
+            ? response()->json(['message' => 'Token expirado'], 401)
             : redirect()->route('login');
     }
 }

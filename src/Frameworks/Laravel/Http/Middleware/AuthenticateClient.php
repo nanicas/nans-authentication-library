@@ -40,16 +40,11 @@ class AuthenticateClient
     {
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
-        /**
-         * Talvez, no futuro, precisaremos usar as chaves:
-         * NANICAS_CLIENT_CLIENT_ID & NANICAS_CLIENT_CLIENT_SECRET
-         * para não conflitar com o usuário final.
-         */
         $authService = app()->make(ThirdPartyAuthService::class);
         $authResponse = $authService->retrieveByCredentials([
             'grant_type' => 'client_credentials',
-            'client_id' => $config['CLIENT_ID'],
-            'client_secret' => $config['CLIENT_SECRET'],
+            'client_id' => $config['AUTHENTICATION_CLIENT_ID'],
+            'client_secret' => $config['AUTHENTICATION_CLIENT_SECRET'],
             'scope' => '',
         ]);
 
