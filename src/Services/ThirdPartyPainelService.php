@@ -6,7 +6,7 @@ use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
 use Nanicas\Auth\Services\AbstractClient;
 
-class ThirdPartyPainelClient extends AbstractClient
+class ThirdPartyPainelService extends AbstractClient
 {
     public function __construct()
     {
