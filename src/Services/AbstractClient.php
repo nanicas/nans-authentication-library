@@ -7,7 +7,9 @@ use Nanicas\Auth\Helpers\LaravelAuthHelper;
 abstract class AbstractClient
 {
     protected string $baseAPI;
-    protected bool $personal;
+    protected bool $personal = false;
+
+    protected bool $client = false; // client credentials
 
     /**
      * @param bool $personal
@@ -15,6 +17,14 @@ abstract class AbstractClient
     public function setPersonal(bool $personal)
     {
         $this->personal = $personal;
+    }
+
+    /**
+     * @param bool $personal
+     */
+    public function setClient(bool $client)
+    {
+        $this->client = $client;
     }
 
     abstract protected function getPersonalToken(): string;
@@ -39,6 +49,8 @@ abstract class AbstractClient
     {
         if ($this->personal) {
             $token = $this->getPersonalToken();
+        } elseif ($this->client) {
+            $token = $this->getClientAuthToken();
         } else {
             $token = $this->getAuthToken();
         }
@@ -52,6 +64,14 @@ abstract class AbstractClient
     protected function getAuthToken(): string
     {
         return 'Bearer ' . session()->get(LaravelAuthHelper::getAuthSessionKey())['access_token'];
+    }
+
+    /**
+     * @return string
+     */
+    protected function getClientAuthToken(): string
+    {
+        return session()->get(LaravelAuthHelper::getClientAuthSessionKey())['access_token'];
     }
 
     /**
