@@ -7,9 +7,21 @@ composer require nanicas/auth:dev-main
 
 ## Configurar o client e secret no .env
 ```
-NANICAS_CLIENT_ID=<int>
-NANICAS_CLIENT_SECRET=<secret>
-NANICAS_AUTHORIZATION_API_URL=authentication-app:8000/
+'AUTHENTICATION_CLIENT_ID' => env('NANICAS_AUTHENTICATION_CLIENT_ID'),
+'AUTHENTICATION_CLIENT_SECRET' => env('NANICAS_AUTHENTICATION_CLIENT_SECRET'),
+'AUTHENTICATION_API_URL' => env('NANICAS_AUTHENTICATION_API_URL'),
+'AUTHENTICATION_PERSONAL_TOKEN' => env('NANICAS_AUTHENTICATION_PERSONAL_TOKEN'),
+
+'PAINEL_API_URL' => env('NANICAS_PAINEL_API_URL'),
+'PAINEL_PERSONAL_TOKEN' => env('NANICAS_PAINEL_PERSONAL_TOKEN'),
+
+'AUTHORIZATION_API_URL' => env('NANICAS_AUTHORIZATION_API_URL'),
+'AUTHORIZATION_PERSONAL_TOKEN' => env('NANICAS_AUTHORIZATION_PERSONAL_TOKEN'),
+
+'SESSION_AUTH_KEY' => 'nanicas_auth',
+'SESSION_CLIENT_AUTH_KEY' => 'nanicas_client_auth',
+
+'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
 ```
 
 ## Adicionar os providers em config/app.php
@@ -57,7 +69,7 @@ NANICAS_AUTHORIZATION_API_URL=authentication-app:8000/
 `php artisan vendor:publish --tag="nanicas_auth:config"`
 
 Após o comando, favor verificar no diretório `config` (raiz) se os arquivos foram transferidos:
-- `nanicas_authorization.php`
+- `nanicas_auth.php`
 
 ## Adicionar a coluna ID no "fillable" na model que representa seu usuário autenticado
 ```php

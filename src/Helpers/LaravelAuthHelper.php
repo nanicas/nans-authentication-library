@@ -7,7 +7,7 @@ use DateInterval;
 
 class LaravelAuthHelper
 {
-    const CONFIG_FILE_NAME = 'nanicas_authorization';
+    const CONFIG_FILE_NAME = 'nanicas_auth';
 
     /**
      * @param object $session
@@ -44,9 +44,10 @@ class LaravelAuthHelper
      * @param string $sessionKey
      */
     public static function putAuthInfoInSession(
-        object $session, array $body, string $sessionKey = ''
-    )
-    {
+        object $session,
+        array $body,
+        string $sessionKey = ''
+    ) {
         $expiresAt = self::defineExpiresAt($body['expires_in']);
         $body['expires_at_datetime'] = $expiresAt;
 
