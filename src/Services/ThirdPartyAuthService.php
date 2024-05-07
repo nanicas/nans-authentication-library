@@ -3,19 +3,50 @@
 namespace Nanicas\Auth\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
+use Nanicas\Auth\Helpers\LaravelAuthHelper;
 
 class ThirdPartyAuthService
 {
     private string $baseAPI;
 
-    /**
-     * @param array $config
-     */
-    public function __construct(
-        array $config = [],
-    )
+    public function __construct()
     {
-        $this->baseAPI = $config['API_URL'];
+        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+
+        $this->baseAPI = $config['AUTHENTICATION_API_URL'];
+    }
+
+    /**
+     * @param array $credentials
+     * @return array
+     */
+    public function users()
+    {
+        $token = $this->getToken();
+
+        return HTTPRequest::do(function () use ($token) {
+
+            $client = HTTPRequest::client();
+
+            $url = 'api/users';
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($token),
+                    )
+                ]
+            );
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
+        });
     }
 
     /**
@@ -128,6 +159,14 @@ class ThirdPartyAuthService
             $fail = $response->getBody()->getContents();
             return HTTPRequest::getDefaultFail($statusCode, $fail);
         });
+    }
+
+    /**
+     * @return string
+     */
+    private function getToken(): string
+    {
+        return session()->get(LaravelAuthHelper::getClientAuthSessionKey())['access_token'];
     }
 
     /**
