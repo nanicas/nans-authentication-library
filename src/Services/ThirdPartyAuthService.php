@@ -26,7 +26,7 @@ class ThirdPartyAuthService extends AbstractClient
         return HTTPRequest::do(function () use ($token, $filters) {
 
             $client = HTTPRequest::client();
-            $url = $this->handleUrl('users');
+            $url = $this->handleUrl('user/filter');
 
             $response = $client->get(
                 $this->baseAPI . $url,
