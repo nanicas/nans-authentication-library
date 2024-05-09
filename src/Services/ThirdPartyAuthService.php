@@ -166,12 +166,17 @@ class ThirdPartyAuthService extends AbstractClient
      */
     protected function getClientAuthToken(): string
     {
-        $token = session()->get(LaravelAuthHelper::getClientAuthSessionKey())['access_token'];
+        $token = '';
+        $sessionKey = LaravelAuthHelper::getClientAuthSessionKey();
+
+        if (session()->has($sessionKey)) {
+            $token = session()->get($sessionKey)['access_token'];
+        }
         if (empty($token)) {
             $token = $this->generateClientAuthToken();
         }
 
-        return $token ?? null;
+        return $token;
     }
 
     /**
@@ -193,5 +198,11 @@ class ThirdPartyAuthService extends AbstractClient
         }
 
         return $authResponse['body']['access_token'];
+    }
+
+    protected function getPersonalToken(): string
+    {
+        return 'It is not necessary to use a personal token for this service
+                because Authentication Service uses oauth clients.';
     }
 }
