@@ -19,7 +19,7 @@ class ThirdPartyAuthService extends AbstractClient
      * @param array $filters
      * @return array
      */
-    public function users(array $filters)
+    public function users(array $filters = [])
     {
         $token = $this->getToken();
 
