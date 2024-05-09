@@ -16,13 +16,14 @@ class ThirdPartyAuthService extends AbstractClient
     }
 
     /**
+     * @param array $filters
      * @return array
      */
-    public function users()
+    public function users(array $filters)
     {
         $token = $this->getToken();
 
-        return HTTPRequest::do(function () use ($token) {
+        return HTTPRequest::do(function () use ($token, $filters) {
 
             $client = HTTPRequest::client();
             $url = $this->handleUrl('users');
@@ -33,7 +34,8 @@ class ThirdPartyAuthService extends AbstractClient
                     'headers' => array_merge(
                         $this->defaultHeaders(),
                         $this->authorizationHeader($token),
-                    )
+                    ),
+                    'query' => $filters
                 ]
             );
 
