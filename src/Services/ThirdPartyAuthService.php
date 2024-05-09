@@ -164,10 +164,34 @@ class ThirdPartyAuthService extends AbstractClient
     /**
      * @return string
      */
-    protected function getPersonalToken(): string
+    protected function getClientAuthToken(): string
+    {
+        $token = session()->get(LaravelAuthHelper::getClientAuthSessionKey())['access_token'];
+        if (empty($token)) {
+            $token = $this->generateClientAuthToken();
+        }
+
+        return $token ?? null;
+    }
+
+    /**
+     * @return null|string
+     */
+    private function generateClientAuthToken()
     {
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
-        return $config['AUTHENTICATION_PERSONAL_TOKEN'];
+        $authResponse = $this->retrieveByCredentials([
+            'grant_type' => 'client_credentials',
+            'client_id' => $config['AUTHENTICATION_CLIENT_ID'],
+            'client_secret' => $config['AUTHENTICATION_CLIENT_SECRET'],
+            'scope' => '',
+        ]);
+
+        if (!$authResponse['status']) {
+            return null;
+        }
+
+        return $authResponse['body']['access_token'];
     }
 }
