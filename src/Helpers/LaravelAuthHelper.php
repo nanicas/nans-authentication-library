@@ -40,6 +40,26 @@ class LaravelAuthHelper
 
     /**
      * @param object $session
+     * @param string $newSessionKey
+     * @param array $body
+     * @param string $currentSessionKey
+     * @return void
+     */
+    public static function attachInSession(
+        object $session,
+        string $newSessionKey = '',
+        array $body,
+        string $currentSessionKey = '',
+    ): void {
+        $currentSessionKey = (empty($currentSessionKey)) ? self::getAuthSessionKey() : $currentSessionKey;
+        $currentBody = $session->get($currentSessionKey);
+
+        $currentBody[$newSessionKey] = $body;
+        $session->put($currentSessionKey, $currentBody);
+    }
+
+    /**
+     * @param object $session
      * @param array $body
      * @param string $sessionKey
      */
@@ -53,6 +73,17 @@ class LaravelAuthHelper
 
         $sessionKey = (empty($sessionKey)) ? self::getAuthSessionKey() : $sessionKey;
         $session->put($sessionKey, $body);
+    }
+
+    /**
+     * @param object $session
+     * @param string $sessionKey
+     * @return array
+     */
+    public static function getAuthInfoFromSession(object $session, string $sessionKey = ''): array
+    {
+        $sessionKey = (empty($sessionKey)) ? self::getAuthSessionKey() : $sessionKey;
+        return $session->get($sessionKey);
     }
 
     /**

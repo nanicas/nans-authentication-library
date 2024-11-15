@@ -5,8 +5,9 @@ namespace Nanicas\Auth\Services;
 use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
 use Nanicas\Auth\Services\AbstractClient;
+use Nanicas\Auth\Contracts\PainelClient;
 
-class ThirdPartyPainelService extends AbstractClient
+class ThirdPartyPainelService extends AbstractClient implements PainelClient
 {
     public function __construct()
     {

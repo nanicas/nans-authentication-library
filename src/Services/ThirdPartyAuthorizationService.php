@@ -5,8 +5,9 @@ namespace Nanicas\Auth\Services;
 use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
 use Nanicas\Auth\Services\AbstractClient;
+use Nanicas\Auth\Contracts\AuthorizationClient;
 
-class ThirdPartyAuthorizationService extends AbstractClient
+class ThirdPartyAuthorizationService extends AbstractClient implements AuthorizationClient
 {
     public function __construct()
     {
@@ -42,6 +43,39 @@ class ThirdPartyAuthorizationService extends AbstractClient
             }
 
             return HTTPRequest::getDefaultFail($response->getStatusCode());
+        });
+    }
+
+    /**
+     * @param string $token
+     * @param int $contractId
+     * @return array
+     */
+    public function retrieveByTokenAndContract(string $token, int $contractId)
+    {
+        return HTTPRequest::do(function () use ($token, $contractId) {
+
+            $client = HTTPRequest::client();
+
+            $url = 'api/user';
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader('Bearer ' . $token),
+                        ['X-Contrato-Id' => $contractId]
+                    )
+                ]
+            );
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
         });
     }
 
