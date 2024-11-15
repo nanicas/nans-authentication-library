@@ -88,3 +88,8 @@ class User extends Authenticatable
     protected $fillable = [
         'id', // It is necessary because Auth API returns this attribute
 ```
+
+## Gerar Personal Tokens
+```
+php artisan personal_token:generate painel
+```
