@@ -52,10 +52,21 @@ class LaravelAuthHelper
         string $currentSessionKey = '',
     ): void {
         $currentSessionKey = (empty($currentSessionKey)) ? self::getAuthSessionKey() : $currentSessionKey;
-        $currentBody = $session->get($currentSessionKey);
+        $currentBody = $session->get($currentSessionKey, []);
 
         $currentBody[$newSessionKey] = $body;
         $session->put($currentSessionKey, $currentBody);
+    }
+
+    /**
+     * @param object $session
+     * @param string $sessionKey
+     * @return bool
+     */
+    public static function existsInSession(object $session, string $sessionKey = ''): bool
+    {
+        $sessionKey = (empty($sessionKey)) ? self::getAuthSessionKey() : $sessionKey;
+        return $session->has($sessionKey);
     }
 
     /**
@@ -72,6 +83,12 @@ class LaravelAuthHelper
         $body['expires_at_datetime'] = $expiresAt;
 
         $sessionKey = (empty($sessionKey)) ? self::getAuthSessionKey() : $sessionKey;
+
+        if (self::existsInSession($session, $sessionKey)) {
+            $currentBody = $session->get($sessionKey);
+            $body = array_merge($currentBody, $body);
+        }
+
         $session->put($sessionKey, $body);
     }
 

@@ -5,6 +5,7 @@ namespace Nanicas\Auth\Traits;
 use Illuminate\Http\Request;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
 use Nanicas\Auth\Services\ThirdPartyAuthorizationService;
+use Nanicas\Auth\Exceptions\RequiredContractToPermissionateException;
 
 trait Permissionable
 {
@@ -22,7 +23,11 @@ trait Permissionable
             return $auth['acl'];
         }
 
-        $response = $client->retrieveByTokenAndContract($auth['access_token'], 6);
+        if (!array_key_exists('contract',  $auth)) {
+            throw new RequiredContractToPermissionateException();
+        }
+
+        $response = $client->retrieveByTokenAndContract($auth['access_token'], $auth['contract']['id']);
         if (!$response['status']) {
             return [];
         }

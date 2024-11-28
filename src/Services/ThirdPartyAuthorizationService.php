@@ -80,6 +80,41 @@ class ThirdPartyAuthorizationService extends AbstractClient implements Authoriza
     }
 
     /**
+     * @param array $filters
+     * @return array
+     */
+    public function cache(array $filters = [])
+    {
+        $this->setPersonal(true);
+        $token = $this->getPersonalToken();
+
+        return HTTPRequest::do(function () use ($token, $filters) {
+
+            $client = HTTPRequest::client();
+            $url = $this->handleUrl('cache');
+
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($token),
+                    ),
+                    'query' => $filters
+                ]
+            );
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
+        });
+    }
+
+    /**
      * @return string
      */
     protected function getPersonalToken(): string

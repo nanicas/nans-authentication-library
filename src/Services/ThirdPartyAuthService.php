@@ -203,7 +203,6 @@ class ThirdPartyAuthService extends AbstractClient implements AuthenticationClie
 
     protected function getPersonalToken(): string
     {
-        return 'It is not necessary to use a personal token for this service
-                because Authentication Service uses oauth clients.';
+        return 'It is not allowed to use personal token in this service. All requests must be made with oauth token.';
     }
 }
