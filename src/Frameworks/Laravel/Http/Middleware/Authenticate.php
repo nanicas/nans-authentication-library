@@ -4,10 +4,12 @@ namespace Nanicas\Auth\Frameworks\Laravel\Http\Middleware;
 
 use Closure;
 use Carbon\Carbon;
-use Nanicas\Auth\Services\ThirdPartyAuthService;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Nanicas\Auth\Traits\Permissionable;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Contracts\AuthorizationClient;
+use Nanicas\Auth\Services\ThirdPartyAuthService;
 
 class Authenticate
 {
@@ -29,8 +31,8 @@ class Authenticate
             return $next($request);
         }
 
-        $authService = app()->make(ThirdPartyAuthService::class);
-        $authResponse = $authService->refreshToken([
+        $authenticationClient = app()->make(ThirdPartyAuthService::class);
+        $authResponse = $authenticationClient->refreshToken([
             'grant_type' => 'refresh_token',
             'client_id' => $config['AUTHENTICATION_OAUTH_CLIENT_ID'],
             'client_secret' => $config['AUTHENTICATION_OAUTH_CLIENT_SECRET'],
@@ -42,12 +44,21 @@ class Authenticate
             return $this->logout($request);
         }
 
-        $request->session()->regenerate();
+        /**
+         * @issue: It was clearing the session and the user was logged out
+         * $request->session()->regenerate();
+         */
 
         LaravelAuthHelper::putAuthInfoInSession(
             $request->session(),
             $authResponse['body']
         );
+
+        $user = $request->user();
+        if (in_array(Permissionable::class, class_uses_recursive($user))) {
+            $authorizationClient = app()->make(AuthorizationClient::class);
+            $user->forceGetACLPermissions($request, $authorizationClient);
+        }
 
         return $next($request);
     }

@@ -19,17 +19,26 @@ class CustomUserProvider extends EloquentUserProvider
             return null;
         }
 
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $request = app()->make('request');
 
-        $authService = app()->make(ThirdPartyAuthService::class);
-        $authResponse = $authService->retrieveByCredentials([
+        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
+
+        $payload = [
             'grant_type' => 'password',
             'client_id' => $config['AUTHENTICATION_OAUTH_CLIENT_ID'],
             'client_secret' => $config['AUTHENTICATION_OAUTH_CLIENT_SECRET'],
             'username' => $credentials['email'],
             'password' => $credentials['password'],
             'scope' => '',
-        ]);
+        ];
+
+        if (!empty($auth) && array_key_exists('contract',  $auth)) {
+            $payload['contract_id'] = $auth['contract']['id'];
+        }
+
+        $authService = app()->make(ThirdPartyAuthService::class);
+        $authResponse = $authService->retrieveByCredentials($payload);
 
         $this->setResponse('retrieveByCredentials.authResponse', $authResponse);
         if (!$authResponse['status']) {
