@@ -4,10 +4,10 @@ namespace Nanicas\Auth\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
-use Nanicas\Auth\Services\AbstractClient;
+use Nanicas\Auth\Services\ThirdPartyClient;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 
-class ThirdPartyAuthorizationService extends AbstractClient implements AuthorizationClient
+class ThirdPartyAuthorizationService extends ThirdPartyClient implements AuthorizationClient
 {
     public function __construct()
     {

@@ -2,9 +2,9 @@
 
 namespace Nanicas\Auth\Frameworks\Laravel\Guards\CustomToken;
 
-use Illuminate\Auth\EloquentUserProvider;
-use Nanicas\Auth\Services\ThirdPartyAuthService;
 use App\Models\User;
+use Illuminate\Auth\EloquentUserProvider;
+use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class CustomUserProvider extends EloquentUserProvider
 {
@@ -14,7 +14,7 @@ class CustomUserProvider extends EloquentUserProvider
             return null;
         }
 
-        $authService = app()->make(ThirdPartyAuthService::class);
+        $authService = app()->make(AuthenticationClient::class);
         $authResponse = $authService->retrieveByToken($credentials['api_token']);
 
         if (!$authResponse['status']) {

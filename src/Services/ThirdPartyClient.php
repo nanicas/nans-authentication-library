@@ -4,7 +4,7 @@ namespace Nanicas\Auth\Services;
 
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
 
-abstract class AbstractClient
+abstract class ThirdPartyClient
 {
     protected string $baseAPI;
     protected bool $personal = false;

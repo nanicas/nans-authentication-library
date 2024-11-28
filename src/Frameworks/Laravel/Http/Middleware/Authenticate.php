@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Nanicas\Auth\Traits\Permissionable;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
 use Nanicas\Auth\Contracts\AuthorizationClient;
-use Nanicas\Auth\Services\ThirdPartyAuthService;
+use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class Authenticate
 {
@@ -31,7 +31,7 @@ class Authenticate
             return $next($request);
         }
 
-        $authenticationClient = app()->make(ThirdPartyAuthService::class);
+        $authenticationClient = app()->make(AuthenticationClient::class);
         $authResponse = $authenticationClient->refreshToken([
             'grant_type' => 'refresh_token',
             'client_id' => $config['AUTHENTICATION_OAUTH_CLIENT_ID'],

@@ -2,12 +2,12 @@
 
 namespace Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession;
 
-use Illuminate\Auth\EloquentUserProvider;
-use Illuminate\Contracts\Auth\Authenticatable as UserContract;
-use Nanicas\Auth\Services\ThirdPartyAuthService;
 use App\Models\User;
 use RuntimeException;
+use Illuminate\Auth\EloquentUserProvider;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Contracts\AuthenticationClient;
+use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
 class CustomUserProvider extends EloquentUserProvider
 {
@@ -37,7 +37,7 @@ class CustomUserProvider extends EloquentUserProvider
             $payload['contract_id'] = $auth['contract']['id'];
         }
 
-        $authService = app()->make(ThirdPartyAuthService::class);
+        $authService = app()->make(AuthenticationClient::class);
         $authResponse = $authService->retrieveByCredentials($payload);
 
         $this->setResponse('retrieveByCredentials.authResponse', $authResponse);
@@ -55,7 +55,7 @@ class CustomUserProvider extends EloquentUserProvider
 
     public function retrieveByAccessToken(string $token): User|array
     {
-        $authService = app()->make(ThirdPartyAuthService::class);
+        $authService = app()->make(AuthenticationClient::class);
 
         $userResponse = $authService->retrieveByToken($token);
         if ($userResponse['status']) {

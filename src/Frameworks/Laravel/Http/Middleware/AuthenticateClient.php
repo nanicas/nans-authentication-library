@@ -4,9 +4,9 @@ namespace Nanicas\Auth\Frameworks\Laravel\Http\Middleware;
 
 use Closure;
 use Carbon\Carbon;
-use Nanicas\Auth\Services\ThirdPartyAuthService;
 use Illuminate\Http\Request;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class AuthenticateClient
 {
@@ -40,7 +40,7 @@ class AuthenticateClient
     {
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
-        $authService = app()->make(ThirdPartyAuthService::class);
+        $authService = app()->make(AuthenticationClient::class);
         $authResponse = $authService->retrieveByCredentials([
             'grant_type' => 'client_credentials',
             'client_id' => $config['AUTHENTICATION_CLIENT_ID'],

@@ -18,12 +18,13 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(AuthenticationClient::class, function (Application $app) {
-            return new ThirdPartyAuthService();
+            $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+            return $app->make($config['DEFAULT_AUTHENTICATION_CLIENT']);
         });
 
         $this->app->bind(AuthorizationClient::class, function (Application $app) {
             $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
-            return app()->make($config['DEFAULT_AUTHORIZATION_CLIENT']);
+            return $app->make($config['DEFAULT_AUTHORIZATION_CLIENT']);
         });
 
         $this->commands([
