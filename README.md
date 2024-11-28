@@ -26,6 +26,7 @@ return [
 
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
     'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthorizationService::class,
+    'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthenticationService::class,
 ];
 ```
 
@@ -67,10 +68,11 @@ return [
 
 ## Adicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
 ```php
-'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
-'auth_client.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateClient::class,
-'auth_personal.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
 'acl.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Permissions::class,
+'auth_client.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateClient::class,
+'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
+'auth_personal.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
+'contract_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ContractByDomain::class,
 ```
 
 ## Executar o comando de publicação dos arquivos de configuração
