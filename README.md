@@ -5,7 +5,28 @@
 composer require nanicas/auth:dev-main
 ```
 
-## Configurar o client e secret no .env
+## Adicionar os Providers
+
+No arquivo `config/app.php`, adicione:
+
+```php
+'providers' => [
+    \Nanicas\Auth\Frameworks\Laravel\Providers\AppServiceProvider::class,
+    \Nanicas\Auth\Frameworks\Laravel\Providers\BootstrapServiceProvider::class,
+    \Nanicas\Auth\Frameworks\Laravel\Providers\AuthServiceProvider::class,
+],
+```
+
+## Executar o comando de publicação dos arquivos de configuração
+
+```
+php artisan vendor:publish --tag="nanicas_auth:config"
+```
+
+Após o comando, favor verificar no diretório `/config` (raiz) se o arquivo existe:
+- `nanicas_auth.php`
+
+## Configurar as variáveis de ambiente
 ```php
 return [
     'AUTHENTICATION_OAUTH_CLIENT_ID' => env('NANICAS_AUTHENTICATION_OAUTH_CLIENT_ID'),
@@ -30,16 +51,10 @@ return [
 ];
 ```
 
-## Adicionar os providers em config/app.php
-```php
-'providers' => [
-    \Nanicas\Auth\Frameworks\Laravel\Providers\AppServiceProvider::class,
-    \Nanicas\Auth\Frameworks\Laravel\Providers\BootstrapServiceProvider::class,
-    \Nanicas\Auth\Frameworks\Laravel\Providers\AuthServiceProvider::class,
-],
-```
+## Customizar Guards e Providers em `config/auth.php`
 
-## Alterar os guards e providers em `config/auth.php`
+Caso queira personalizar os meios de autenticação, altere:
+
 ```php
 'guards' => [
     'web' => [
@@ -66,22 +81,10 @@ return [
 ],
 ```
 
-## Adicionar um apelido (alias) para o middleware em `app/Http/Kernel.php`
-```php
-'acl.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Permissions::class,
-'auth_client.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateClient::class,
-'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
-'auth_personal.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
-'contract_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ContractByDomain::class,
-```
+### Configurar a entidade de usuário
 
-## Executar o comando de publicação dos arquivos de configuração
-`php artisan vendor:publish --tag="nanicas_auth:config"`
+Adicionar a coluna ID no "fillable" da Model que representa seu usuário autenticado:
 
-Após o comando, favor verificar no diretório `config` (raiz) se os arquivos foram transferidos:
-- `nanicas_auth.php`
-
-## Adicionar a coluna ID no "fillable" na model que representa seu usuário autenticado
 ```php
 namespace App\Models;
 
@@ -93,7 +96,171 @@ class User extends Authenticatable
         'id', // It is necessary because Auth API returns this attribute
 ```
 
-## Gerar Personal Tokens
+## Adicionar Middlewares
+
+No arquivo `app/Http/Kernel.php`, adicione:
+
+```php
+'acl.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Permissions::class,
+'auth_client.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateClient::class,
+'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
+'auth_personal.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
+'contract_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ContractByDomain::class,
 ```
-php artisan personal_token:generate painel
+
+---
+
+## Exemplos
+
+### Estrutura de organização de suas rotas
+
+```php
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
+use Nanicas\Auth\Helpers\LaravelAuthHelper;
+
+Route::middleware([
+    'contract_domain.nanicas',
+    'auth_oauth.nanicas',
+    'acl.nanicas'
+])->group(function () {
+    Route::get('/test', function (Request $request) {
+
+        Gate::authorize('create'); // This will throw an exception if the user does not have the 'create' permission
+
+        // Others routes ...
+    });
+});
 ```
+
+### Estrutura de dados na sessão
+
+```php
+use Nanicas\Auth\Helpers\LaravelAuthHelper;
+
+dump(
+    LaravelAuthHelper::getAuthInfoFromSession($request->session()),
+);
+
+// Result:
+array:7 [▼
+  "contract" => array:3 [▼
+    "id" => 6
+    "subdomain" => "nanicas"
+    "domain" => "app.com"
+  ]
+  "token_type" => "Bearer"
+  "expires_in" => 7200
+  "access_token" => "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+  "refresh_token" => "def5020009ccaf2385d538ac0fd7b73dbad..."
+  "expires_at_datetime" => DateTime @1732924585 {#314 ▼
+    date: 2024-11-29 23:56:25.910698 UTC (+00:00)
+  }
+  "acl" => array:2 [▼
+    "permissions" => array:3 [▼
+      0 => "create"
+      1 => "read"
+      2 => "edit",
+      3 => "delete",
+    ]
+    "role" => array:2 [▼
+      "id" => 2
+      "name" => "Diretor"
+    ]
+  ]
+]
+```
+
+### Customizar um serviço terceiro
+
+No arquivo de configuração `config/nanicas_auth.php`, existem as classes padrão, sendo:
+
+```php
+'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthorizationService::class,
+'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthenticationService::class,
+```
+
+Caso queira usar uma própria, bastar herdá-la e implementar/ajustar da sua maneira, como:
+
+```php
+use Nanicas\Auth\Services\ThirdPartyAuthenticationService as ThirdPartyAuthenticationServiceNanicas;
+use Nanicas\Auth\Services\ThirdPartyAuthorizationService as ThirdPartyAuthorizationServiceNanicas;
+
+use Nanicas\Auth\Contracts\AuthenticationClient;
+use Nanicas\Auth\Contracts\AuthorizationClient;
+
+class YourCustomAuthentication 
+    extends ThirdPartyAuthenticationServiceNanicas 
+    implements AuthenticationClient
+{
+    // ...
+}
+
+class YourCustomAuthorization
+    extends ThirdPartyAuthenticationServiceNanicas 
+    implements AuthorizationClient
+{
+    // ...
+}
+```
+
+As interfaces são obrigatórias, pois é com esse contrato que o Framework conseguirá usar a inversão de dependência corretamente, como configurado em `src/Frameworks/Laravel/Providers/AppServiceProvider.php`.
+
+### Gerar Personal Tokens
+
+Caso necessite gerar um token particular para que aplicações consigam conversar entre si sem solicitar dados de autenticação internamente, basta executar o comando abaixo:
+
+```bash
+php artisan personal_token:generate <name>
+```
+
+Lembre-se de configurar as variáveis de ambiente para lê-las:
+
+```php
+'AUTHENTICATION_PERSONAL_TOKEN' => env('NANICAS_AUTHENTICATION_PERSONAL_TOKEN'),
+'PAINEL_PERSONAL_TOKEN' => env('NANICAS_PAINEL_PERSONAL_TOKEN'),
+'AUTHORIZATION_PERSONAL_TOKEN' => env('NANICAS_AUTHORIZATION_PERSONAL_TOKEN'),
+```
+
+### Fluxo de entrada no aplicativo
+
+```
+Quando acessar: nanicas.app.com
+
+Se (preciso saber o contrato do usuário): (app)
+- Busco contrato pelo subdomínio e domínio (autho)
+
+Se (não existir usuario): (app)
+- Gera token entre aplicações (auth)
+- Cadastra usuário + contrato (se precisar) (auth)
+
+Faz o login enviando email e senha + contrato (se precisar) (auth)
+Salva na sessão os dados da autenticação (app)
+
+Tenta buscar os detalhes de autorização do usuário (autho)
+
+Se (não existir papel vinculado): (app)
+- Busca papéis por contrato (autho)
+- Envia solicitação de vínculo ao papel (autho)
+
+Se (não for entrada automática): (app)
+- aguarda aprovação do vínculo ao papel (app)
+- desloga o usuário (app)
+Senão: (app)
+- Salva na sessão os dados contratuais (app)
+- Salva na sessão os dados sobre permissões (app)
+- Vai para a tela inicial (app)
+
+Quando expirar o token (app)
+- Gera um novo token enviando o refresh token (auth)
+- Busca os detalhes de autorização do usuário (autho)
+- Salva na sessão os dados da autenticação (app)
+- Salva na sessão os dados contratuais (app)
+- Salva na sessão os dados sobre permissões (app)
+```
+
+### Legendas
+
+- **auth**, Autenticação: https://github.com/nanicas/nans-authentication-laravel
+- **autho**, Autorização: https://github.com/nanicas/nans-authorization-laravel
