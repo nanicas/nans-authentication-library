@@ -4,6 +4,7 @@ namespace Nanicas\Auth\Traits;
 
 use Illuminate\Http\Request;
 use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Exceptions\FalseHTTPResponseException;
 use Nanicas\Auth\Services\ThirdPartyAuthorizationService;
 use Nanicas\Auth\Exceptions\RequiredContractToPermissionateException;
 
@@ -46,6 +47,10 @@ trait Permissionable
                 'permissions' => [],
                 'role' => null,
             ];
+
+            // if (isset($response['message'][0])) {
+            //     throw new FalseHTTPResponseException($response['message'][0]);
+            // }
         } else {
             $data = [
                 'permissions' => $response['body']['response']['permissions'],

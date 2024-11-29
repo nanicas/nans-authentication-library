@@ -26,7 +26,7 @@ class ContractByDomain
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
 
-        if (array_key_exists('contract',  $auth)) {
+        if (!empty($auth) && array_key_exists('contract',  $auth)) {
             return $next($request);
         }
 
