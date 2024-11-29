@@ -1,6 +1,7 @@
 > Atenção: Todos os comandos abaixo deverão ser executados em seu projeto principal.
 
-## Instalar dependência
+## Instalar a dependência
+
 ```bash
 composer require nanicas/auth:dev-main
 ```
@@ -27,6 +28,7 @@ Após o comando, favor verificar no diretório `/config` (raiz) se o arquivo exi
 - `nanicas_auth.php`
 
 ## Configurar as variáveis de ambiente
+
 ```php
 return [
     'AUTHENTICATION_OAUTH_CLIENT_ID' => env('NANICAS_AUTHENTICATION_OAUTH_CLIENT_ID'),
@@ -134,6 +136,8 @@ Route::middleware([
 });
 ```
 
+---
+
 ### Estrutura de dados na sessão
 
 ```php
@@ -172,6 +176,8 @@ array:7 [▼
 ]
 ```
 
+---
+
 ### Customizar um serviço terceiro
 
 No arquivo de configuração `config/nanicas_auth.php`, existem as classes padrão, sendo:
@@ -207,12 +213,49 @@ class YourCustomAuthorization
 
 As interfaces são obrigatórias, pois é com esse contrato que o Framework conseguirá usar a inversão de dependência corretamente, como configurado em `src/Frameworks/Laravel/Providers/AppServiceProvider.php`.
 
+---
+
 ### Gerar Personal Tokens
 
-Caso necessite gerar um token particular para que aplicações consigam conversar entre si sem solicitar dados de autenticação internamente, basta executar o comando abaixo:
+As aplicações que forem consumir recursos privados desse projeto, deverão usar um token pessoal para comunicação entre as aplicações (machine-to-machine), enviando no cabeçalho, como no exemplo:
+
+```php
+Description:
+  Generate a Personal Token
+
+Usage:
+  personal_token:generate [options] [--] <tokenable_type>
+
+Arguments:
+  tokenable_type                 
+
+Options:
+      --name[=NAME]               [default: "access_token"]
+      --abilities[=ABILITIES]     (multiple values allowed)
+      --expires_at[=EXPIRES_AT]  
+```
+
+#### Execução simples (token pessoal)
 
 ```bash
-php artisan personal_token:generate <name>
+php artisan personal_token:generate <consumer>
+```
+
+#### Execução avançada (token pessoal)
+
+```bash
+php artisan personal_token:generate \
+    "Authorization\App\Models\User" \
+    --name="access_token" \
+    --abilities="read,write" \
+    --expires_at="2025-12-31 23:59:59"
+```
+
+Resultado (ambos):
+
+```bash
+Personal token generated successfully.
+Token: e0984965f3f...f3bda2495c2a28
 ```
 
 Lembre-se de configurar as variáveis de ambiente para lê-las:
@@ -222,6 +265,16 @@ Lembre-se de configurar as variáveis de ambiente para lê-las:
 'PAINEL_PERSONAL_TOKEN' => env('NANICAS_PAINEL_PERSONAL_TOKEN'),
 'AUTHORIZATION_PERSONAL_TOKEN' => env('NANICAS_AUTHORIZATION_PERSONAL_TOKEN'),
 ```
+
+#### Enviando token pessoal via HTTP
+
+```
+curl --location 'http://app/api/personal/filter' \
+--header 'Accept: application/json' \
+--header 'Authorization: e0984965f3f...f3bda2495c2a28'
+```
+
+---
 
 ### Fluxo de entrada no aplicativo
 
