@@ -269,7 +269,7 @@ Lembre-se de configurar as variáveis de ambiente para lê-las:
 #### Enviando token pessoal via HTTP
 
 ```
-curl --location 'http://app/api/personal/filter' \
+curl --location 'http://app:8000/api/personal/filter' \
 --header 'Accept: application/json' \
 --header 'Authorization: e0984965f3f...f3bda2495c2a28'
 ```

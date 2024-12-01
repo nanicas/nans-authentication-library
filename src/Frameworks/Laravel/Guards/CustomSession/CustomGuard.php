@@ -25,7 +25,8 @@ class CustomGuard extends SessionGuard
             ->getResponse('retrieveByCredentials.authResponse');
 
         LaravelAuthHelper::putAuthInfoInSession(
-            parent::getRequest()->session(), $authResponse['body']
+            parent::getRequest()->session(),
+            $authResponse['body']
         );
     }
 
@@ -50,7 +51,7 @@ class CustomGuard extends SessionGuard
             ->session()
             ->get(LaravelAuthHelper::getAuthSessionKey());
 
-        if (!empty($authSession)) {
+        if (!empty($authSession) && isset($authSession['access_token'])) {
             $id = $this->session->get($this->getName());
             $token = $authSession['access_token'];
 
