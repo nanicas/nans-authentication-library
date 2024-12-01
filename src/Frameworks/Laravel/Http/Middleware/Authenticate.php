@@ -23,7 +23,7 @@ class Authenticate
         $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
 
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
-        if (empty($auth)) {
+        if (empty($auth) || !isset($auth['access_token'])) {
             return $this->logout($request);
         }
 
