@@ -4,7 +4,7 @@ namespace Nanicas\Auth\Frameworks\Laravel\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
-use Nanicas\Auth\Services\ThirdPartyClient;
+use Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyClient;
 use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class ThirdPartyAuthenticationService extends ThirdPartyClient implements AuthenticationClient
