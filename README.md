@@ -3,7 +3,7 @@
 ## Instalar a dependência
 
 ```bash
-composer require nanicas/auth:dev-main
+composer require nanicas/authentication-library:dev-main
 ```
 
 ## Adicionar os Providers
