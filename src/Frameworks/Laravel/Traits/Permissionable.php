@@ -5,17 +5,17 @@ namespace Nanicas\Auth\Frameworks\Laravel\Traits;
 use Illuminate\Http\Request;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 // use Nanicas\Auth\Exceptions\FalseHTTPResponseException;
-use Nanicas\Auth\Services\ThirdPartyAuthorizationService;
+use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Exceptions\RequiredContractToPermissionateException;
 
 trait Permissionable
 {
     /**
      * @param \Illuminate\Http\Request $request
-     * @param \Nanicas\Auth\Services\ThirdPartyAuthorizationService $client
+     * @param \Nanicas\Auth\Contracts\AuthorizationClient $client
      * @return mixed
      */
-    public function getACLPermissions(Request $request, ThirdPartyAuthorizationService $client)
+    public function getACLPermissions(Request $request, AuthorizationClient $client)
     {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
@@ -29,10 +29,10 @@ trait Permissionable
 
     /**
      * @param \Illuminate\Http\Request $request
-     * @param \Nanicas\Auth\Services\ThirdPartyAuthorizationService $client
+     * @param \Nanicas\Auth\Contracts\AuthorizationClient $client
      * @return mixed
      */
-    public function forceGetACLPermissions(Request $request, ThirdPartyAuthorizationService $client)
+    public function forceGetACLPermissions(Request $request, AuthorizationClient $client)
     {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
