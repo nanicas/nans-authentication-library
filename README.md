@@ -13,7 +13,6 @@ No arquivo `config/app.php`, adicione:
 ```php
 'providers' => [
     \Nanicas\Auth\Frameworks\Laravel\Providers\AppServiceProvider::class,
-    \Nanicas\Auth\Frameworks\Laravel\Providers\BootstrapServiceProvider::class,
     \Nanicas\Auth\Frameworks\Laravel\Providers\AuthServiceProvider::class,
 ],
 ```

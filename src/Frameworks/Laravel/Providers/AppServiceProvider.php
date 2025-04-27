@@ -36,6 +36,17 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
+        $src = __DIR__ . '/../../../..';
+
+        $this->publishes([
+            $src . '/config' => config_path(),
+        ], 'nanicas_auth:config');
+
+        $this->bootGate();
+    }
+
+    private function bootGate()
+    {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
         if (!isset($config['gate']) || !$config['gate']['check_acl_permissions']) {
             return;
