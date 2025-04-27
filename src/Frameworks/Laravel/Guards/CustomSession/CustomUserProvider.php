@@ -5,7 +5,7 @@ namespace Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession;
 use App\Models\User;
 use RuntimeException;
 use Illuminate\Auth\EloquentUserProvider;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Contracts\AuthenticationClient;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
@@ -21,7 +21,7 @@ class CustomUserProvider extends EloquentUserProvider
 
         $request = app()->make('request');
 
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
 
         $payload = [

@@ -5,7 +5,7 @@ namespace Nanicas\Auth\Frameworks\Laravel\Http\Middleware;
 use Closure;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class AuthenticateClient
@@ -17,7 +17,7 @@ class AuthenticateClient
      */
     public function handle(Request $request, Closure $next)
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $auth = $request->session()->get($config['SESSION_CLIENT_AUTH_KEY']);
         if (empty($auth)) {
@@ -38,7 +38,7 @@ class AuthenticateClient
      */
     private function generateToken(Request $request, Closure $next)
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $authService = app()->make(AuthenticationClient::class);
         $authResponse = $authService->retrieveByCredentials([
@@ -52,10 +52,10 @@ class AuthenticateClient
             return $this->error($request);
         }
 
-        LaravelAuthHelper::putAuthInfoInSession(
+        AuthHelper::putAuthInfoInSession(
             $request->session(),
             $authResponse['body'],
-            LaravelAuthHelper::getClientAuthSessionKey()
+            AuthHelper::getClientAuthSessionKey()
         );
 
         return $next($request);

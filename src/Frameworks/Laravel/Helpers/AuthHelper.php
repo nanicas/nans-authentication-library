@@ -1,11 +1,11 @@
 <?php
 
-namespace Nanicas\Auth\Helpers;
+namespace Nanicas\Auth\Frameworks\Laravel\Helpers;
 
 use DateTime;
 use DateInterval;
 
-class LaravelAuthHelper
+class AuthHelper
 {
     const CONFIG_FILE_NAME = 'nanicas_auth';
 

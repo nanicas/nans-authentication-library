@@ -4,13 +4,13 @@ namespace Nanicas\Auth\Frameworks\Laravel\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Exceptions\UndefinedContractByDomainException;
 use Nanicas\Auth\Exceptions\MultiplesContractsByDomainException;
 
-class ContractByDomain
+class DefineContractByDomain
 {
     /**
      * Handle an incoming request.
@@ -23,7 +23,7 @@ class ContractByDomain
         string ...$guards
     ): Response {
 
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
 
         if (!empty($auth) && array_key_exists('contract',  $auth)) {
@@ -52,9 +52,9 @@ class ContractByDomain
 
         $contract = $response['body']['data'][0];
 
-        $authKey = LaravelAuthHelper::getAuthSessionKey();
+        $authKey = AuthHelper::getAuthSessionKey();
 
-        LaravelAuthHelper::attachInSession(
+        AuthHelper::attachInSession(
             $request->session(),
             'contract',
             [

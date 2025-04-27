@@ -1,9 +1,9 @@
 <?php
 
-namespace Nanicas\Auth\Services;
+namespace Nanicas\Auth\Frameworks\Laravel\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Services\ThirdPartyClient;
 use Nanicas\Auth\Contracts\PainelClient;
 
@@ -11,7 +11,7 @@ class ThirdPartyPainelService extends ThirdPartyClient implements PainelClient
 {
     public function __construct()
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $this->baseAPI = $config['PAINEL_API_URL'];
         $this->personal = false;
@@ -90,7 +90,7 @@ class ThirdPartyPainelService extends ThirdPartyClient implements PainelClient
      */
     protected function getPersonalToken(): string
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         return $config['PAINEL_PERSONAL_TOKEN'];
     }

@@ -3,7 +3,7 @@
 namespace Nanicas\Auth\Frameworks\Laravel\Guards\CustomSession;
 
 use Illuminate\Auth\SessionGuard;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use App\Models\User;
 
 class CustomGuard extends SessionGuard
@@ -24,7 +24,7 @@ class CustomGuard extends SessionGuard
         $authResponse = $this->provider
             ->getResponse('retrieveByCredentials.authResponse');
 
-        LaravelAuthHelper::putAuthInfoInSession(
+        AuthHelper::putAuthInfoInSession(
             parent::getRequest()->session(),
             $authResponse['body']
         );
@@ -49,7 +49,7 @@ class CustomGuard extends SessionGuard
 
         $authSession = parent::getRequest()
             ->session()
-            ->get(LaravelAuthHelper::getAuthSessionKey());
+            ->get(AuthHelper::getAuthSessionKey());
 
         if (!empty($authSession) && isset($authSession['access_token'])) {
             $id = $this->session->get($this->getName());
@@ -86,7 +86,7 @@ class CustomGuard extends SessionGuard
     {
         parent::clearUserDataFromStorage();
 
-        LaravelAuthHelper::forgetAuthInfoFromSession(
+        AuthHelper::forgetAuthInfoFromSession(
             parent::getRequest()->session()
         );
     }

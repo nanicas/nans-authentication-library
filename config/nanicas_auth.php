@@ -20,4 +20,8 @@ return [
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
     'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthorizationService::class,
     'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthenticationService::class,
+
+    'gate' => [
+        'check_acl_permissions' => false,
+    ]
 ];

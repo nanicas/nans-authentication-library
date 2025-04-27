@@ -4,7 +4,7 @@ namespace Nanicas\Auth\Frameworks\Laravel\Console\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
 class GeneratePersonalToken extends Command
 {
@@ -19,7 +19,7 @@ class GeneratePersonalToken extends Command
         $abilities = $this->option('abilities');
         $expiresAt = $this->getExpiresAt($this->option('expires_at'));
 
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
         $model = app($config['DEFAULT_PERSONAL_TOKEN_MODEL']);
 
         $lastToken = $model->where('tokenable_type', $tokenableType)->latest()->first();

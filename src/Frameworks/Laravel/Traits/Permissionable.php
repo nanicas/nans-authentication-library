@@ -1,10 +1,10 @@
 <?php
 
-namespace Nanicas\Auth\Traits;
+namespace Nanicas\Auth\Frameworks\Laravel\Traits;
 
 use Illuminate\Http\Request;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
-use Nanicas\Auth\Exceptions\FalseHTTPResponseException;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+// use Nanicas\Auth\Exceptions\FalseHTTPResponseException;
 use Nanicas\Auth\Services\ThirdPartyAuthorizationService;
 use Nanicas\Auth\Exceptions\RequiredContractToPermissionateException;
 
@@ -17,7 +17,7 @@ trait Permissionable
      */
     public function getACLPermissions(Request $request, ThirdPartyAuthorizationService $client)
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
 
         if (array_key_exists('acl', $auth)) {
@@ -34,7 +34,7 @@ trait Permissionable
      */
     public function forceGetACLPermissions(Request $request, ThirdPartyAuthorizationService $client)
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
 
         if (!array_key_exists('contract',  $auth)) {
@@ -58,7 +58,7 @@ trait Permissionable
             ];
         }
 
-        LaravelAuthHelper::attachInSession(
+        AuthHelper::attachInSession(
             $request->session(),
             'acl',
             $data

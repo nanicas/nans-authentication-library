@@ -3,7 +3,7 @@
 namespace Nanicas\Auth\Frameworks\Laravel\Http\Middleware;
 
 use Closure;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
 class ValidatePersonalToken
 {
@@ -11,7 +11,7 @@ class ValidatePersonalToken
     {
         $personalToken = $request->header('Authorization');
 
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
         $model = app($config['DEFAULT_PERSONAL_TOKEN_MODEL']);
 
         $last = $model->where('token', $personalToken)->first();

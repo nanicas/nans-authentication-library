@@ -1,8 +1,8 @@
 <?php
 
-namespace Nanicas\Auth\Services;
+namespace Nanicas\Auth\Frameworks\Laravel\Services;
 
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
 abstract class ThirdPartyClient
 {
@@ -63,7 +63,7 @@ abstract class ThirdPartyClient
      */
     protected function getAuthToken(): string
     {
-        return 'Bearer ' . session()->get(LaravelAuthHelper::getAuthSessionKey())['access_token'];
+        return 'Bearer ' . session()->get(AuthHelper::getAuthSessionKey())['access_token'];
     }
 
     /**
@@ -71,7 +71,7 @@ abstract class ThirdPartyClient
      */
     protected function getClientAuthToken(): string
     {
-        return session()->get(LaravelAuthHelper::getClientAuthSessionKey())['access_token'];
+        return session()->get(AuthHelper::getClientAuthSessionKey())['access_token'];
     }
 
     /**

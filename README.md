@@ -50,6 +50,10 @@ return [
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
     'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthorizationService::class,
     'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthenticationService::class,
+
+    'gate' => [
+      'check_acl_permissions' => false,
+    ]
 ];
 ```
 
@@ -103,35 +107,37 @@ class User extends Authenticatable
 No arquivo `app/Http/Kernel.php`, adicione:
 
 ```php
-'acl.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Permissions::class,
 'auth_client.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateClient::class,
-'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\Authenticate::class,
-'auth_personal.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
-'contract_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ContractByDomain::class,
+'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateOauth::class,
+'validate_personal_token.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
+'define_contract_by_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\DefineContractByDomain::class,
 ```
 
 ---
 
 ## Exemplos
 
-### Estrutura de organização de suas rotas
+### Busca de permissões por usuário
+
+Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Traits\Permissionable` implementada.
+
+Segundo passo é habilitar a configuração `gate.check_acl_permissions` no seu arquivo `nanicas_auth.php`.
+
+Terceiro e último é tentar fazer o uso do fluxo como um todo, incluindo, acesso às permissões, sendo:
 
 ```php
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
 Route::middleware([
-    'contract_domain.nanicas',
+    'define_contract_by_domain.nanicas',
     'auth_oauth.nanicas',
-    'acl.nanicas'
 ])->group(function () {
     Route::get('/test', function (Request $request) {
 
         Gate::authorize('create'); // This will throw an exception if the user does not have the 'create' permission
-
-        // Others routes ...
     });
 });
 ```
@@ -141,10 +147,10 @@ Route::middleware([
 ### Estrutura de dados na sessão
 
 ```php
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
 dump(
-    LaravelAuthHelper::getAuthInfoFromSession($request->session()),
+    AuthHelper::getAuthInfoFromSession($request->session()),
 );
 
 // Result:

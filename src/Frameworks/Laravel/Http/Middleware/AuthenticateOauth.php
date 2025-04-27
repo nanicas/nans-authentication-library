@@ -7,11 +7,11 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Nanicas\Auth\Traits\Permissionable;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Contracts\AuthenticationClient;
 
-class Authenticate
+class AuthenticateOauth
 {
     /**
      * @param Request $request
@@ -20,7 +20,7 @@ class Authenticate
      */
     public function handle(Request $request, Closure $next)
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $auth = $request->session()->get($config['SESSION_AUTH_KEY']);
         if (empty($auth) || !isset($auth['access_token'])) {
@@ -49,7 +49,7 @@ class Authenticate
          * $request->session()->regenerate();
          */
 
-        LaravelAuthHelper::putAuthInfoInSession(
+        AuthHelper::putAuthInfoInSession(
             $request->session(),
             $authResponse['body']
         );
@@ -69,7 +69,7 @@ class Authenticate
      */
     private function logout(Request $request)
     {
-        LaravelAuthHelper::forgetAuthInfoFromSession($request->session());
+        AuthHelper::forgetAuthInfoFromSession($request->session());
 
         Auth::logout();
 

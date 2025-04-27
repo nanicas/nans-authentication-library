@@ -1,9 +1,9 @@
 <?php
 
-namespace Nanicas\Auth\Services;
+namespace Nanicas\Auth\Frameworks\Laravel\Services;
 
 use Nanicas\Auth\Core\HTTPRequest;
-use Nanicas\Auth\Helpers\LaravelAuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Services\ThirdPartyClient;
 use Nanicas\Auth\Contracts\AuthenticationClient;
 
@@ -11,7 +11,7 @@ class ThirdPartyAuthenticationService extends ThirdPartyClient implements Authen
 {
     public function __construct()
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $this->baseAPI = $config['AUTHENTICATION_API_URL'];
     }
@@ -168,7 +168,7 @@ class ThirdPartyAuthenticationService extends ThirdPartyClient implements Authen
     protected function getClientAuthToken(): string
     {
         $token = '';
-        $sessionKey = LaravelAuthHelper::getClientAuthSessionKey();
+        $sessionKey = AuthHelper::getClientAuthSessionKey();
 
         if (session()->has($sessionKey)) {
             $token = session()->get($sessionKey)['access_token'];
@@ -185,7 +185,7 @@ class ThirdPartyAuthenticationService extends ThirdPartyClient implements Authen
      */
     private function generateClientAuthToken()
     {
-        $config = config(LaravelAuthHelper::CONFIG_FILE_NAME);
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $authResponse = $this->retrieveByCredentials([
             'grant_type' => 'client_credentials',
