@@ -6,7 +6,7 @@ use Closure;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Nanicas\Auth\Traits\Permissionable;
+use Nanicas\Auth\Frameworks\Laravel\Traits\Permissionable;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Contracts\AuthenticationClient;

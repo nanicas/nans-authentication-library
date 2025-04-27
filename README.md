@@ -118,7 +118,7 @@ No arquivo `app/Http/Kernel.php`, adicione:
 
 ### Busca de permissões por usuário
 
-Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Traits\Permissionable` implementada.
+Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Frameworks\Laravel\Traits\Permissionable` implementada.
 
 Segundo passo é habilitar a configuração `gate.check_acl_permissions` no seu arquivo `nanicas_auth.php`.
 
@@ -133,11 +133,25 @@ use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 Route::middleware([
     'define_contract_by_domain.nanicas',
     'auth_oauth.nanicas',
-])->group(function () {
-    Route::get('/test', function (Request $request) {
+])->get('/test', function () {
+    $request = request();
+    // $client = app()->make(AuthorizationClient::class);
+    // $permissions = request()->user()->getACLPermissions($request, $client);
 
-        Gate::authorize('create'); // This will throw an exception if the user does not have the 'create' permission
-    });
+    try {
+        Gate::authorize('create', User::class);
+        $hasPermission = true;
+    } catch (Exception $e) {
+        $hasPermission = false;
+    }
+
+    dd(
+        [
+            'has_permission' => $hasPermission,
+            'user' => $request->user(),
+        ],
+        AuthHelper::getAuthInfoFromSession($request->session()),
+    );
 });
 ```
 
@@ -146,13 +160,11 @@ Route::middleware([
 ### Estrutura de dados na sessão
 
 ```php
-use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+array:2 [▼ // routes/web.php:46
+  "has_permission" => true
+  "user" => App\Models\User{#1371 ▶}
+]
 
-dump(
-    AuthHelper::getAuthInfoFromSession($request->session()),
-);
-
-// Result:
 array:7 [▼
   "contract" => array:3 [▼
     "id" => 6

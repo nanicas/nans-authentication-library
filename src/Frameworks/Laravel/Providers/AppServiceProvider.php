@@ -4,7 +4,7 @@ namespace Nanicas\Auth\Frameworks\Laravel\Providers;
 
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Nanicas\Auth\Traits\Permissionable;
+use Nanicas\Auth\Frameworks\Laravel\Traits\Permissionable;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 use Illuminate\Contracts\Foundation\Application;
 use Nanicas\Auth\Contracts\AuthenticationClient;
