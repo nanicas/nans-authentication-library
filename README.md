@@ -47,8 +47,8 @@ return [
     'SESSION_CLIENT_AUTH_KEY' => 'nanicas_client_auth',
 
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
-    'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthorizationService::class,
-    'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthenticationService::class,
+    'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthorizationService::class,
+    'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthenticationService::class,
 
     'gate' => [
       'check_acl_permissions' => false,
@@ -188,15 +188,15 @@ array:7 [▼
 No arquivo de configuração `config/nanicas_auth.php`, existem as classes padrão, sendo:
 
 ```php
-'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthorizationService::class,
-'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Services\ThirdPartyAuthenticationService::class,
+'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthorizationService::class,
+'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthenticationService::class,
 ```
 
 Caso queira usar uma própria, bastar herdá-la e implementar/ajustar da sua maneira, como:
 
 ```php
-use Nanicas\Auth\Services\ThirdPartyAuthenticationService as ThirdPartyAuthenticationServiceNanicas;
-use Nanicas\Auth\Services\ThirdPartyAuthorizationService as ThirdPartyAuthorizationServiceNanicas;
+use Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthenticationService as ThirdPartyAuthenticationServiceNanicas;
+use Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthorizationService as ThirdPartyAuthorizationServiceNanicas;
 
 use Nanicas\Auth\Contracts\AuthenticationClient;
 use Nanicas\Auth\Contracts\AuthorizationClient;
