@@ -1,6 +1,6 @@
 {
-    "name": "nanicas/auth",
-    "description": "Auth manager",
+    "name": "nanicas/authentication-library",
+    "description": "Auth manager for Nanicas projects",
     "type": "library",
     "require": {
         "guzzlehttp/guzzle": "^7.8"
