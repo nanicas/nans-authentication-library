@@ -128,6 +128,7 @@ Terceiro e último é tentar fazer o uso do fluxo como um todo, incluindo, acess
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
 Route::middleware([
