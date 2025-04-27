@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
-        if (!$config['gate']['check_acl_permissions']) {
+        if (!isset($config['gate']) || !$config['gate']['check_acl_permissions']) {
             return;
         }
 
