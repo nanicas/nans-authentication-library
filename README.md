@@ -102,7 +102,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     protected $fillable = [
-        'id', // It is necessary because Auth API returns this attribute
+        'id', // É necessário porque a API de autenticação retorna esse atributo e deve ser preenchido
 ```
 
 ## Adicionar Middlewares
@@ -122,11 +122,47 @@ No arquivo `app/Http/Kernel.php`, adicione:
 
 ### Busca de permissões por usuário via API (stateless)
 
-Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableStateless` implementada.
+Primeiro passo é sua model referente ao usuário possuir a trait `Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableStateless` implementada.
 
 Segundo passo é habilitar a configuração `gate.check_acl_permissions` e `stateless` no seu arquivo `nanicas_auth.php`.
 
-Terceiro e último é tentar fazer o uso do fluxo como um todo, incluindo sub-grupos e acesso às permissões, sendo:
+Vamos criar um middleware para separar a lógica referente a autorização, caso exista: (`namespace App\Http\Middleware`)
+
+```php
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Nanicas\Auth\Contracts\AuthorizationClient;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+
+class Authorizate
+{
+    public function handle(Request $request, Closure $next, string ...$guards): Response
+    {
+        $request = request();
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
+        $token = $request->bearerToken();
+
+        $authorizator = app()->make(AuthorizationClient::class);
+        $response = $authorizator->retrieveByTokenAndContract($token, $config['HARD_CONTRACT_ID']);
+
+        if (!$response['status']) {
+            return response()->json([
+                'error' => 'Unauthorized',
+                'message' => (isset($response['message'])) ? $response['message'] : 'Invalid token or contract not found.',
+            ], 401);
+        }
+
+        $request->attributes->set($config['AUTHORIZATION_RESPONSE_KEY'], $response);
+
+        return $next($request);
+    }
+}
+```
+
+> No exemplo acima, estamos usando um `HARD_CONTRACT_ID` fixo, ou seja, obtido do arquivo de configuração. Contudo, isso poderia ser dinâmico de acordo com sua regra de negócio.
+
+E por último é tentar fazer o uso do fluxo como um todo, incluindo acesso às permissões, sendo:
 
 ```php
 use App\Models\User;
@@ -135,34 +171,17 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
-Route::middleware('auth:api')->group(function () {
-
-    $request = request();
-    $config = config(AuthHelper::CONFIG_FILE_NAME);
-    $token = $request->bearerToken();
-
-    $authorizator = app()->make(Nanicas\Auth\Contracts\AuthorizationClient::class);
-    $response = $authorizator->retrieveByTokenAndContract($token, $config['HARD_CONTRACT_ID']);
-
-    if (!$response['status']) {
-        return response()->json([
-            'error' => 'Unauthorized',
-            'message' => (isset($response['message'])) 
-              ? $response['message'] 
-              : 'Invalid token or contract not found.',
-        ], 401);
-    }
-
-    $request->attributes->set($config['AUTHORIZATION_RESPONSE_KEY'], $response);
-
-    Route::group(['prefix' => 'v1'], function () use ($config) {
-        Route::get('/user', function (Request $request) use ($config) {
+Route::middleware(['auth:api', 'authorizate'])->group(function () {
+    Route::group(['prefix' => 'v1'], function () {
+        Route::get('/user', function (Request $request) {
             try {
                 Gate::authorize('create', User::class);
                 $hasPermission = true;
             } catch (Exception $e) {
                 $hasPermission = false;
             }
+
+            $config = config(AuthHelper::CONFIG_FILE_NAME);
 
             return [
                 'has_permission' => $hasPermission,
@@ -217,8 +236,6 @@ Route::middleware('auth:api')->group(function () {
 }
 ```
 
-> No exemplo acima, estamos usando um `HARD_CONTRACT_ID` fixo, ou seja, advinda do arquivo de configuração. Contudo, isso poderia ser dinâmico de acordo com sua regra de negócio.
-
 > Um ponto de atenção é sobre o middleware principal `auth:api`, pois, caso o token recebido seja inválido, o Laravel pode passar a exibir `"The route api/v1/user could not be found"`, sendo necessário então configurar um `fallback`.
 
 > Caso tente usar o `Gate::authorize` sem antes passar pelo middleware `auth:api`, receberá o seguinte erro:
@@ -255,10 +272,14 @@ Route::middleware([
     'auth_oauth.nanicas',
 ])->get('/user', function () {
     $request = request();
-    // $client = app()->make(AuthorizationClient::class);
-    // $permissions = request()->user()->getACLPermissions($request, $client);
 
-    dd(AuthHelper::getAuthInfoFromSession($request->session()));
+    $client = app()->make(AuthorizationClient::class);
+    $permissions = request()->user()->getACLPermissions($request, $client);
+
+    dd(array_merge(
+        AuthHelper::getAuthInfoFromSession($request->session()),
+        ["acl" => $permissions],
+    ));
 });
 ```
 
@@ -299,6 +320,8 @@ array:7 [▼
 Nanicas\Auth\Exceptions\RequiredContractToPermissionateException {#112
   #message: "Contract is required to permissionate"
 ```
+
+> Entendemos que, se existe um grupo cercado pelo middleware `auth_oauth.nanicas`, significa que o login já foi feito anteriormente usando o driver `custom_session`, caso contrário, será redirecionado para o `logout`.
 
 ---
 
