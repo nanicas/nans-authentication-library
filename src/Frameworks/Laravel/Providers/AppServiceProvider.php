@@ -2,15 +2,16 @@
 
 namespace Nanicas\Auth\Frameworks\Laravel\Providers;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Nanicas\Auth\Frameworks\Laravel\Traits\Permissionable;
-use Nanicas\Auth\Contracts\AuthorizationClient;
-use Illuminate\Contracts\Foundation\Application;
 use Nanicas\Auth\Contracts\AuthenticationClient;
-use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Exceptions\UserNotPermissionableException;
 use Nanicas\Auth\Frameworks\Laravel\Console\Commands\GeneratePersonalToken;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+use Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableSession;
+use Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableStateless;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,11 +53,12 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
-        Gate::before(function ($user, $ability) {
+        Gate::before(function ($user, $ability) use ($config) {
             $request = request();
             $client = app()->make(AuthorizationClient::class);
 
-            if (!in_array(Permissionable::class, class_uses_recursive($user))) {
+            $class = ($config['stateless']) ? PermissionableStateless::class : PermissionableSession::class;
+            if (!in_array($class, class_uses_recursive($user))) {
                 throw new UserNotPermissionableException();
             }
 

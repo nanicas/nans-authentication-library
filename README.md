@@ -43,15 +43,19 @@ return [
     'AUTHORIZATION_API_URL' => env('NANICAS_AUTHORIZATION_API_URL'),
     'AUTHORIZATION_PERSONAL_TOKEN' => env('NANICAS_AUTHORIZATION_PERSONAL_TOKEN'),
 
+    'HARD_CONTRACT_ID' => env('NANICAS_HARD_CONTRACT_ID'),
+
     'SESSION_AUTH_KEY' => 'nanicas_auth',
     'SESSION_CLIENT_AUTH_KEY' => 'nanicas_client_auth',
+    'AUTHORIZATION_RESPONSE_KEY' => 'authorization_response',
 
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
     'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthorizationService::class,
     'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthenticationService::class,
 
+    'stateless' => false,
     'gate' => [
-      'check_acl_permissions' => false,
+        'check_acl_permissions' => false,
     ]
 ];
 ```
@@ -116,13 +120,128 @@ No arquivo `app/Http/Kernel.php`, adicione:
 
 ## Exemplos
 
-### Busca de permissões por usuário
+### Busca de permissões por usuário via API (stateless)
 
-Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Frameworks\Laravel\Traits\Permissionable` implementada.
+Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableStateless` implementada.
 
-Segundo passo é habilitar a configuração `gate.check_acl_permissions` no seu arquivo `nanicas_auth.php`.
+Segundo passo é habilitar a configuração `gate.check_acl_permissions` e `stateless` no seu arquivo `nanicas_auth.php`.
 
-Terceiro e último é tentar fazer o uso do fluxo como um todo, incluindo, acesso às permissões, sendo:
+Terceiro e último é tentar fazer o uso do fluxo como um todo, incluindo sub-grupos e acesso às permissões, sendo:
+
+```php
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
+use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+
+Route::middleware('auth:api')->group(function () {
+
+    $request = request();
+    $config = config(AuthHelper::CONFIG_FILE_NAME);
+    $token = $request->bearerToken();
+
+    $authorizator = app()->make(Nanicas\Auth\Contracts\AuthorizationClient::class);
+    $response = $authorizator->retrieveByTokenAndContract($token, $config['HARD_CONTRACT_ID']);
+
+    if (!$response['status']) {
+        return response()->json([
+            'error' => 'Unauthorized',
+            'message' => (isset($response['message'])) 
+              ? $response['message'] 
+              : 'Invalid token or contract not found.',
+        ], 401);
+    }
+
+    $request->attributes->set($config['AUTHORIZATION_RESPONSE_KEY'], $response);
+
+    Route::group(['prefix' => 'v1'], function () use ($config) {
+        Route::get('/user', function (Request $request) use ($config) {
+            try {
+                Gate::authorize('create', User::class);
+                $hasPermission = true;
+            } catch (Exception $e) {
+                $hasPermission = false;
+            }
+
+            return [
+                'has_permission' => $hasPermission,
+                'user' => $request->user(),
+                'authorization_response' => $request->attributes->get($config['AUTHORIZATION_RESPONSE_KEY']),
+            ];
+        });
+    });
+});
+```
+
+**Estrutura de dados via API (stateless)**
+
+```json
+{
+    "has_permission": true,
+    "user": {
+        "id": 4,
+        "name": "José",
+        "email": "jose_diretor@example.com"
+    },
+    "authorization_response": {
+        "status": true,
+        "code": 200,
+        "body": {
+            "response": {
+                "user": {
+                    "id": 4,
+                    "name": "José",
+                    "email": "jose_diretor@example.com"
+                },
+                "role": {
+                    "id": 2,
+                    "name": "Diretor"
+                },
+                "permissions": [
+                    "create",
+                    "edit",
+                    "update",
+                    "delete",
+                ],
+                "cache": {
+                    "contract_name": "Contrato Inicial",
+                    "contract_subdomain": "banana",
+                    "application_name": "Banana",
+                    "application_domain": "nanicas.com"
+                }
+            },
+            "status": true
+        }
+    }
+}
+```
+
+> No exemplo acima, estamos usando um `HARD_CONTRACT_ID` fixo, ou seja, advinda do arquivo de configuração. Contudo, isso poderia ser dinâmico de acordo com sua regra de negócio.
+
+> Um ponto de atenção é sobre o middleware principal `auth:api`, pois, caso o token recebido seja inválido, o Laravel pode passar a exibir `"The route api/v1/user could not be found"`, sendo necessário então configurar um `fallback`.
+
+> Caso tente usar o `Gate::authorize` sem antes passar pelo middleware `auth:api`, receberá o seguinte erro:
+
+```php
+Illuminate\Auth\Access\AuthorizationException {#323
+  #message: "This action is unauthorized."
+```
+
+> Caso tente usar os métodos contidos na trait `PermissionableStateless`, como por exemplo `getACLPermissions`, sem antes adicionar uma resposta válida do `Autorizador` na requisição em questão, receberá o seguinte erro:
+
+```php
+Nanicas\Auth\Exceptions\RequiredAuthorizationResponseToPermissionateException {#296
+  #message: "Authorization response is required to permissionate"
+```
+
+### Busca de permissões por usuário via sessão
+
+Primeiro passo é sua Model referente ao usuário possuir a Trait `Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableSession` implementada.
+
+Segundo passo é habilitar a configuração `gate.check_acl_permissions` e desabilitar a configuração `stateless` no seu arquivo `nanicas_auth.php`
+
+Terceiro e último é tentar fazer o uso do fluxo como um todo, incluindo acesso às permissões, sendo:
 
 ```php
 use Illuminate\Http\Request;
@@ -134,43 +253,23 @@ use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 Route::middleware([
     'define_contract_by_domain.nanicas',
     'auth_oauth.nanicas',
-])->get('/test', function () {
+])->get('/user', function () {
     $request = request();
     // $client = app()->make(AuthorizationClient::class);
     // $permissions = request()->user()->getACLPermissions($request, $client);
 
-    try {
-        Gate::authorize('create', User::class);
-        $hasPermission = true;
-    } catch (Exception $e) {
-        $hasPermission = false;
-    }
-
-    dd(
-        [
-            'has_permission' => $hasPermission,
-            'user' => $request->user(),
-        ],
-        AuthHelper::getAuthInfoFromSession($request->session()),
-    );
+    dd(AuthHelper::getAuthInfoFromSession($request->session()));
 });
 ```
 
----
-
-### Estrutura de dados na sessão
+**Estrutura de dados via sessão**
 
 ```php
-array:2 [▼ // routes/web.php:46
-  "has_permission" => true
-  "user" => App\Models\User{#1371 ▶}
-]
-
 array:7 [▼
   "contract" => array:3 [▼
     "id" => 6
-    "subdomain" => "nanicas"
-    "domain" => "app.com"
+    "subdomain" => "banana"
+    "domain" => "nanicas.com"
   ]
   "token_type" => "Bearer"
   "expires_in" => 7200
@@ -183,7 +282,7 @@ array:7 [▼
     "permissions" => array:3 [▼
       0 => "create"
       1 => "read"
-      2 => "edit",
+      2 => "update",
       3 => "delete",
     ]
     "role" => array:2 [▼
@@ -192,6 +291,13 @@ array:7 [▼
     ]
   ]
 ]
+```
+
+> Caso você decida não usar o `define_contract_by_domain.nanicas` para definir seu contrato automaticamente na sessão, tenha em mente que será necessária tal informação internamente durante o uso do `Gate::authorize`, caso contrário, receberá o seguinte erro:
+
+```php
+Nanicas\Auth\Exceptions\RequiredContractToPermissionateException {#112
+  #message: "Contract is required to permissionate"
 ```
 
 ---
