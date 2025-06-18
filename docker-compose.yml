@@ -1,11 +1,11 @@
 version: '3'
 
 services:
-  auth-library-app:
+  nans-authentication-library-app:
     build:
       context: ./
       dockerfile: Dockerfile
-    container_name: auth-library-app
+    container_name: nans-authentication-library-app
     tty: true 
     volumes:
       - .:/var/www/html
