@@ -19,16 +19,23 @@ class AuthenticateClient
     {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
 
+        if ($config['stateless']) {
+            $this->generateToken($request, $next);
+            return $next($request);
+        }
+
         $auth = $request->session()->get($config['SESSION_CLIENT_AUTH_KEY']);
         if (empty($auth)) {
-            return $this->generateToken($request, $next);
+            $this->generateToken($request, $next);
+            return $next($request);
         }
 
         if (!Carbon::now()->greaterThanOrEqualTo($auth['expires_at_datetime'])) {
             return $next($request);
         }
 
-        return $this->generateToken($request, $next);
+        $this->generateToken($request, $next);
+        return $next($request);
     }
 
     /**
@@ -37,6 +44,30 @@ class AuthenticateClient
      * @return mixed
      */
     private function generateToken(Request $request, Closure $next)
+    {
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
+
+        $response = $this->makeRequest($request)['response'];
+
+        if (!$response['status']) {
+            return $response['response'];
+        }
+
+        if (!$config['stateless']) {
+            AuthHelper::putAuthInfoInSession(
+                $request->session(),
+                $response['body'],
+                AuthHelper::getClientAuthSessionKey()
+            );
+        } else {            
+            $request->attributes->set($config['AUTHENTICATION_RESPONSE_KEY'], $response['body']['access_token']);
+        }
+    }
+
+    /**
+     * @param Request $request
+     */
+    private function makeRequest(Request $request)
     {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
 
@@ -49,16 +80,16 @@ class AuthenticateClient
         ]);
 
         if (!$authResponse['status']) {
-            return $this->error($request);
+            return [
+                'status' => false,
+                'response' => $this->error($request)
+            ];
         }
 
-        AuthHelper::putAuthInfoInSession(
-            $request->session(),
-            $authResponse['body'],
-            AuthHelper::getClientAuthSessionKey()
-        );
-
-        return $next($request);
+        return [
+            'status' => true,
+            'response' => $authResponse,
+        ];
     }
 
     /**

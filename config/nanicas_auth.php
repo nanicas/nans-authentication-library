@@ -19,7 +19,8 @@ return [
     'SESSION_AUTH_KEY' => 'nanicas_auth',
     'SESSION_CLIENT_AUTH_KEY' => 'nanicas_client_auth',
     'AUTHORIZATION_RESPONSE_KEY' => 'authorization_response',
-
+    'AUTHENTICATION_RESPONSE_KEY' => 'authentication_response',
+    
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
     'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthorizationService::class,
     'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthenticationService::class,

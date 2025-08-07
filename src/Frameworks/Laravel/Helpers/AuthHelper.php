@@ -28,6 +28,13 @@ class AuthHelper
         return $config['SESSION_AUTH_KEY'];
     }
 
+    public static function getAuthenticationResponseKey(): string
+    {
+        $config = config(self::CONFIG_FILE_NAME);
+
+        return $config['AUTHENTICATION_RESPONSE_KEY'];
+    }
+
     /**
      * @return string
      */

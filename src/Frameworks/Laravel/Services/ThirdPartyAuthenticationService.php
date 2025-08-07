@@ -25,7 +25,6 @@ class ThirdPartyAuthenticationService extends ThirdPartyClient implements Authen
         $token = $this->getToken();
 
         return HTTPRequest::do(function () use ($token, $filters) {
-
             $client = HTTPRequest::client();
             $url = $this->handleUrl('user/filter');
 
@@ -168,6 +167,13 @@ class ThirdPartyAuthenticationService extends ThirdPartyClient implements Authen
     protected function getClientAuthToken(): string
     {
         $token = '';
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
+
+        if ($config['stateless']) {
+            $statelessKey = AuthHelper::getAuthenticationResponseKey();
+            return request()->attributes->get($statelessKey);
+        }
+
         $sessionKey = AuthHelper::getClientAuthSessionKey();
 
         if (session()->has($sessionKey)) {
