@@ -16,6 +16,40 @@ class ThirdPartyAuthorizationService extends ThirdPartyClient implements Authori
         $this->baseAPI = $config['AUTHORIZATION_API_URL'];
     }
 
+    public function usersRoles(array $userIds, int $contractId)
+    {
+        $personalToken = $this->getToken();
+
+        return HTTPRequest::do(function () use ($userIds, $personalToken, $contractId) {
+            $client = HTTPRequest::client();
+            $url = $this->handleUrl('users');
+
+            $idsParam = json_encode($userIds);
+
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($personalToken)
+                    ),
+                    'query' => [
+                        'ids' => $idsParam,
+                        'contract_id' => $contractId
+                    ]
+                ]
+            );
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
+        });
+    }
+
     /**
      * @param array $credentials
      * @return array
@@ -101,47 +135,6 @@ class ThirdPartyAuthorizationService extends ThirdPartyClient implements Authori
                         $this->authorizationHeader($token),
                     ),
                     'query' => $filters
-                ]
-            );
-
-            $statusCode = $response->getStatusCode();
-            if ($statusCode == 200) {
-                return HTTPRequest::getDefaultSuccess($response);
-            }
-
-            $fail = $response->getBody()->getContents();
-            return HTTPRequest::getDefaultFail($statusCode, $fail);
-        });
-    }
-
-    /**
-     * @param array $ids
-     * @param int $contractId
-     * @return array
-     */
-    public function getUsersByIds(array $ids, int $contractId)
-    {
-        $this->setPersonal(true);
-        $token = $this->getPersonalToken();
-
-        return HTTPRequest::do(function () use ($token, $ids, $contractId) {
-
-            $client = HTTPRequest::client();
-            $url = $this->handleUrl('api/users');
-
-            $queryParams = [
-                'ids' => $ids,
-                'contract_id' => $contractId
-            ];
-
-            $response = $client->get(
-                $this->baseAPI . $url,
-                [
-                    'headers' => array_merge(
-                        $this->defaultHeaders(),
-                        $this->authorizationHeader($token),
-                    ),
-                    'query' => $queryParams
                 ]
             );
 
