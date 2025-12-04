@@ -114,143 +114,167 @@ No arquivo `app/Http/Kernel.php`, adicione:
 'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateOauth::class,
 'validate_personal_token.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
 'define_contract_by_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\DefineContractByDomain::class,
+'authorizate_dynamic.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithDynamicContract::class,
 ```
 
 ---
 
 ## Exemplos
 
-### Busca de permissões por usuário via API (stateless)
+### Autorização com Contrato Dinâmico (Multi-tenant) - Recomendado
 
-Primeiro passo é sua model referente ao usuário possuir a trait `Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableStateless` implementada.
+Esta é a forma recomendada para aplicações multi-tenant, onde o contrato é definido dinamicamente via header HTTP.
 
-Segundo passo é habilitar a configuração `gate.check_acl_permissions` e `stateless` no seu arquivo `nanicas_auth.php`.
+#### 1. Configurar o AuthServiceProvider
 
-Vamos criar um middleware para separar a lógica referente a autorização, caso exista: (`namespace App\Http\Middleware`)
+No seu `App\Providers\AuthServiceProvider.php`, implemente a trait `PolicyPermissionMapeable` e defina o mapeamento de permissões para policies:
 
 ```php
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Nanicas\Auth\Contracts\AuthorizationClient;
-use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
+namespace App\Providers;
 
-class Authorizate
+use App\Models\Charge;
+use App\Policies\ChargePolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Nanicas\Auth\Frameworks\Laravel\Traits\PolicyPermissionMapeable;
+
+class AuthServiceProvider extends ServiceProvider
 {
-    public function handle(Request $request, Closure $next, string ...$guards): Response
-    {
-        $request = request();
-        $config = config(AuthHelper::CONFIG_FILE_NAME);
-        $token = $request->bearerToken();
+    use PolicyPermissionMapeable;
 
-        $authorizator = app()->make(AuthorizationClient::class);
-        $response = $authorizator->retrieveByTokenAndContract($token, $config['HARD_CONTRACT_ID']);
+    protected $policies = [
+        Charge::class => ChargePolicy::class,
+        // ... outras policies
+    ];
 
-        if (!$response['status']) {
-            return response()->json([
-                'error' => 'Unauthorized',
-                'message' => (isset($response['message'])) ? $response['message'] : 'Invalid token or contract not found.',
-            ], 401);
-        }
-
-        $request->attributes->set($config['AUTHORIZATION_RESPONSE_KEY'], $response);
-
-        return $next($request);
-    }
+    /**
+     * Mapeamento de permissões para policies.
+     * A chave é o prefixo da permissão (ex: "charge" para "charge.create").
+     */
+    public static $mapPermissions = [
+        'charge' => ChargePolicy::class,
+        // 'gym' => GymPolicy::class,
+    ];
 }
 ```
 
-> No exemplo acima, estamos usando um `HARD_CONTRACT_ID` fixo, ou seja, obtido do arquivo de configuração. Contudo, isso poderia ser dinâmico de acordo com sua regra de negócio.
+#### 2. Habilitar verificação de permissões ACL
 
-E por último é tentar fazer o uso do fluxo como um todo, incluindo acesso às permissões, sendo:
+No arquivo `config/nanicas_auth.php`:
 
 ```php
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+'gate' => [
+    'check_acl_permissions' => true,
+],
+```
+
+#### 3. Usar o middleware nas rotas
+
+```php
 use Illuminate\Support\Facades\Route;
-use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 
-Route::middleware(['auth:api', 'authorizate'])->group(function () {
+Route::middleware(['auth:api', 'authorizate_dynamic.nanicas'])->group(function () {
     Route::group(['prefix' => 'v1'], function () {
-        Route::get('/user', function (Request $request) {
-            try {
-                Gate::authorize('create', User::class);
-                $hasPermission = true;
-            } catch (Exception $e) {
-                $hasPermission = false;
-            }
-
-            $config = config(AuthHelper::CONFIG_FILE_NAME);
-
-            return [
-                'has_permission' => $hasPermission,
-                'user' => $request->user(),
-                'authorization_response' => $request->attributes->get($config['AUTHORIZATION_RESPONSE_KEY']),
-            ];
-        });
+        Route::get('/charges', [ChargeController::class, 'index']);
+        // ...
     });
 });
 ```
 
-**Estrutura de dados via API (stateless)**
+#### 4. Enviar o header X-Contrato-ID nas requisições
 
-```json
+```bash
+curl --location 'http://app:8000/api/v1/charges' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer eyJ0eXAiOiJKV1Q...' \
+--header 'X-Contrato-ID: 6'
+```
+
+#### Como funciona
+
+O middleware `authorizate_dynamic.nanicas`:
+
+1. Extrai o `contract_id` do header `X-Contrato-ID`
+2. Busca as permissões do usuário no Autorizador para aquele contrato
+3. Registra dinamicamente as permissões no `Gate` do Laravel
+4. As permissões seguem o padrão `recurso.acao` (ex: `charge.create`, `charge.update`)
+
+O mapeamento em `$mapPermissions` associa o prefixo da permissão (`charge`) à Policy correspondente (`ChargePolicy`). Assim, quando uma permissão `charge.create` é recebida, o Gate registra automaticamente `ChargePolicy@create`.
+
+#### Usar nas Policies
+
+```php
+namespace App\Policies;
+
+use App\Models\User;
+use App\Models\Charge;
+use Illuminate\Support\Facades\Gate;
+
+class ChargePolicy
 {
-    "has_permission": true,
-    "user": {
-        "id": 4,
-        "name": "José",
-        "email": "jose_diretor@example.com"
-    },
-    "authorization_response": {
-        "status": true,
-        "code": 200,
-        "body": {
-            "response": {
-                "user": {
-                    "id": 4,
-                    "name": "José",
-                    "email": "jose_diretor@example.com"
-                },
-                "role": {
-                    "id": 2,
-                    "name": "Diretor"
-                },
-                "permissions": [
-                    "create",
-                    "edit",
-                    "update",
-                    "delete",
-                ],
-                "cache": {
-                    "contract_name": "Contrato Inicial",
-                    "contract_subdomain": "banana",
-                    "application_name": "Banana",
-                    "application_domain": "nanicas.com"
-                }
-            },
-            "status": true
-        }
+    public function create(User $user): bool
+    {
+        return Gate::allows('charge.create');
+    }
+
+    public function update(User $user, Charge $charge): bool
+    {
+        return Gate::allows('charge.update');
     }
 }
 ```
 
-> Um ponto de atenção é sobre o middleware principal `auth:api`, pois, caso o token recebido seja inválido, o Laravel pode passar a exibir `"The route api/v1/user could not be found"`, sendo necessário então configurar um `fallback`.
+#### Acessando dados da autorização no Controller/Service
 
-> Caso tente usar o `Gate::authorize` sem antes passar pelo middleware `auth:api`, receberá o seguinte erro:
+Após passar pelo middleware, você pode acessar os dados da autorização usando o helper `AuthHelper::getAuthorizationResponse(request())`:
 
-```php
-Illuminate\Auth\Access\AuthorizationException {#323
-  #message: "This action is unauthorized."
+**Estrutura de dados retornada pelo `getAuthorizationResponse()`:**
+
+```json
+{
+    "status": true,
+    "code": 200,
+    "body": {
+        "response": {
+            "user": {
+                "id": 4,
+                "name": "José",
+                "email": "jose_diretor@example.com"
+            },
+            "role": {
+                "id": 2,
+                "name": "Diretor"
+            },
+            "permissions": [
+                "charge.create",
+                "charge.update",
+                "charge.read",
+                "charge.delete"
+            ],
+            "cache": {
+                "contract_name": "Contrato Inicial",
+                "contract_subdomain": "banana",
+                "application_name": "Banana",
+                "application_domain": "nanicas.com"
+            },
+            "attributes": {
+                "nome": "João",
+                "asaas_customer_id": "cus_000007274549"
+            }
+        },
+        "status": true
+    }
+}
 ```
 
-> Caso tente usar os métodos contidos na trait `PermissionableStateless`, como por exemplo `getACLPermissions`, sem antes adicionar uma resposta válida do `Autorizador` na requisição em questão, receberá o seguinte erro:
+---
 
-```php
-Nanicas\Auth\Exceptions\RequiredAuthorizationResponseToPermissionateException {#296
-  #message: "Authorization response is required to permissionate"
-```
+### Autorização com Contrato Fixo (HARD_CONTRACT_ID)
+
+> ⚠️ **Pendente:** O middleware para autorização com contrato fixo (`HARD_CONTRACT_ID`) ainda não foi implementado na library. Caso necessite dessa funcionalidade, será necessário abrir um PR futuro ou implementar manualmente em sua aplicação.
+
+A configuração `HARD_CONTRACT_ID` no arquivo `nanicas_auth.php` está reservada para cenários onde o contrato é único/fixo para toda a aplicação, diferente do modo dinâmico que usa o header `X-Contrato-ID`.
+
+---
 
 ### Busca de permissões por usuário via sessão
 
@@ -301,10 +325,10 @@ array:7 [▼
   }
   "acl" => array:2 [▼
     "permissions" => array:3 [▼
-      0 => "create"
-      1 => "read"
-      2 => "update",
-      3 => "delete",
+      0 => "charge.create"
+      1 => "charge.read"
+      2 => "charge.update",
+      3 => "charge.delete",
     ]
     "role" => array:2 [▼
       "id" => 2
@@ -314,7 +338,7 @@ array:7 [▼
 ]
 ```
 
-> Caso você decida não usar o `define_contract_by_domain.nanicas` para definir seu contrato automaticamente na sessão, tenha em mente que será necessária tal informação internamente durante o uso do `Gate::authorize`, caso contrário, receberá o seguinte erro:
+> Caso você decida não usar o `define_contract_by_domain.nanicas` para definir seu contrato automaticamente na sessão, tenha em mente que será necessária tal informação, caso contrário, receberá o seguinte erro:
 
 ```php
 Nanicas\Auth\Exceptions\RequiredContractToPermissionateException {#112

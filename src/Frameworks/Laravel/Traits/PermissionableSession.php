@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Exceptions\RequiredContractToPermissionateException;
+use Nanicas\Auth\Contracts\AuthenticationClient;
 
 trait PermissionableSession
 {
@@ -60,5 +61,22 @@ trait PermissionableSession
         );
 
         return $data;
+    }
+
+    /**
+     * @param Request $request
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermission(Request $request, string $permission)
+    {
+        $authService = app()->make(AuthenticationClient::class);
+        $permissions = $this->getACLPermissions($request, $authService);
+
+        if (!array_key_exists('permissions', $permissions)) {
+            return false;
+        }
+
+        return in_array($permission, $permissions['permissions']);
     }
 }

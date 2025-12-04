@@ -4,6 +4,7 @@ namespace Nanicas\Auth\Frameworks\Laravel\Helpers;
 
 use DateTime;
 use DateInterval;
+use Illuminate\Http\Request;
 
 class AuthHelper
 {
@@ -21,11 +22,42 @@ class AuthHelper
     /**
      * @return string
      */
+    public static function getAuthorizationResponseKey(): string
+    {
+        $config = config(self::CONFIG_FILE_NAME);
+
+        return $config['AUTHORIZATION_RESPONSE_KEY'];
+    }
+
+    /**
+     * @param Request $request
+     * @return array|null
+     */
+    public static function getAuthorizationResponse(Request $request): ?array
+    {
+        $key = self::getAuthorizationResponseKey();
+        if (!$request->attributes->has($key)) {
+            return null;
+        }
+
+        return $request->attributes->get($key);
+    }
+
+    /**
+     * @return string
+     */
     public static function getAuthSessionKey(): string
     {
         $config = config(self::CONFIG_FILE_NAME);
 
         return $config['SESSION_AUTH_KEY'];
+    }
+
+    public static function getAuthenticationResponseKey(): string
+    {
+        $config = config(self::CONFIG_FILE_NAME);
+
+        return $config['AUTHENTICATION_RESPONSE_KEY'];
     }
 
     /**

@@ -10,8 +10,8 @@ trait PermissionableStateless
 {
     /**
      * @param \Illuminate\Http\Request $request
-     * @param \Nanicas\Auth\Contracts\AuthorizationClient $client
-     * @return mixed
+     * @return array
+     * @throws RequiredAuthorizationResponseToPermissionateException
      */
     public function getACLPermissions(Request $request)
     {
@@ -35,5 +35,20 @@ trait PermissionableStateless
         }
 
         return $data;
+    }
+
+    /**
+     * @param Request $request
+     * @param string $permission
+     * @return bool
+     */
+    public function hasPermission(Request $request, string $permission)
+    {
+        $permissions = $this->getACLPermissions($request);
+        if (!array_key_exists('permissions', $permissions)) {
+            return false;
+        }
+
+        return in_array($permission, $permissions['permissions']);
     }
 }
