@@ -16,6 +16,39 @@ class ThirdPartyAuthorizationService extends ThirdPartyClient implements Authori
         $this->baseAPI = $config['AUTHORIZATION_API_URL'];
     }
 
+    public function userByUserId(int $userId, int $contractId)
+    {
+        $this->setPersonal(true);
+        $personalToken = $this->getPersonalToken();
+
+        return HTTPRequest::do(function () use ($userId, $personalToken, $contractId) {
+            $client = HTTPRequest::client();
+            $url = $this->handleUrl('user');
+
+            $response = $client->get(
+                $this->baseAPI . $url,
+                [
+                    'headers' => array_merge(
+                        $this->defaultHeaders(),
+                        $this->authorizationHeader($personalToken)
+                    ),
+                    'query' => [
+                        'user_id' => $userId,
+                        'contract_id' => $contractId
+                    ]
+                ]
+            );
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                return HTTPRequest::getDefaultSuccess($response);
+            }
+
+            $fail = $response->getBody()->getContents();
+            return HTTPRequest::getDefaultFail($statusCode, $fail);
+        });
+    }
+
     public function usersRoles(array $userIds, int $contractId)
     {
         $personalToken = $this->getToken();
