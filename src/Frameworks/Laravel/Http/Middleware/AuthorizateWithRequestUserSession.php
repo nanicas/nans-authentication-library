@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableSession;
 
-class AuthorizateWithRequestUser
+class AuthorizateWithRequestUserSession
 {
     /**
      * Handle an incoming request.

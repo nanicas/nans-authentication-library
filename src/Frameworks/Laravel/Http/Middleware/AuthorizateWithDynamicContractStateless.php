@@ -10,7 +10,7 @@ use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 use Illuminate\Support\Facades\Gate;
 use App\Providers\AuthServiceProvider;
 
-class AuthorizateWithDynamicContract
+class AuthorizateWithDynamicContractStateless
 {
     /**
      * Handle an incoming request.

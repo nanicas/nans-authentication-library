@@ -114,8 +114,8 @@ No arquivo `app/Http/Kernel.php`, adicione:
 'auth_oauth.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthenticateOauth::class,
 'validate_personal_token.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
 'define_contract_by_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\DefineContractByDomain::class,
-'authorizate_dynamic.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithDynamicContract::class,
-'authorizate_request_user.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithRequestUser::class,
+'authorizate_dynamic_contract_stateless.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithDynamicContractStateless::class,
+'authorizate_request_user_session.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithRequestUserSession::class,
 ```
 
 ---
@@ -173,7 +173,7 @@ No arquivo `config/nanicas_auth.php`:
 ```php
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:api', 'authorizate_dynamic.nanicas'])->group(function () {
+Route::middleware(['auth:api', 'authorizate_dynamic_contract_stateless.nanicas'])->group(function () {
     Route::group(['prefix' => 'v1'], function () {
         Route::get('/charges', [ChargeController::class, 'index']);
         // ...
@@ -192,7 +192,7 @@ curl --location 'http://app:8000/api/v1/charges' \
 
 #### Como funciona
 
-O middleware `authorizate_dynamic.nanicas`:
+O middleware `authorizate_dynamic_contract_stateless.nanicas`:
 
 1. Extrai o `contract_id` do header `X-Contrato-ID`
 2. Busca as permissões do usuário no Autorizador para aquele contrato
@@ -295,7 +295,7 @@ use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 Route::middleware([
     'define_contract_by_domain.nanicas',
     'auth_oauth.nanicas',
-    // 'authorizate_request_user.nanicas', (caso opte por usar, não precisará invocar novamente request()->user()->getACLPermissions())
+    // 'authorizate_request_user_session.nanicas', (caso opte por usar, não precisará invocar novamente request()->user()->getACLPermissions())
 ])->get('/user', function () {
     $request = request();
 
