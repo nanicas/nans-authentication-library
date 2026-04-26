@@ -115,6 +115,7 @@ No arquivo `app/Http/Kernel.php`, adicione:
 'validate_personal_token.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\ValidatePersonalToken::class,
 'define_contract_by_domain.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\DefineContractByDomain::class,
 'authorizate_dynamic.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithDynamicContract::class,
+'authorizate_request_user.nanicas' => \Nanicas\Auth\Frameworks\Laravel\Http\Middleware\AuthorizateWithRequestUser::class,
 ```
 
 ---
@@ -294,6 +295,7 @@ use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
 Route::middleware([
     'define_contract_by_domain.nanicas',
     'auth_oauth.nanicas',
+    // 'authorizate_request_user.nanicas', (caso opte por usar, não precisará invocar novamente request()->user()->getACLPermissions())
 ])->get('/user', function () {
     $request = request();
 

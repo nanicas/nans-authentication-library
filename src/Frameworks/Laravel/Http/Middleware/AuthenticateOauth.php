@@ -6,9 +6,7 @@ use Closure;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Nanicas\Auth\Frameworks\Laravel\Traits\PermissionableSession;
 use Nanicas\Auth\Frameworks\Laravel\Helpers\AuthHelper;
-use Nanicas\Auth\Contracts\AuthorizationClient;
 use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class AuthenticateOauth
@@ -53,12 +51,6 @@ class AuthenticateOauth
             $request->session(),
             $authResponse['body']
         );
-
-        $user = $request->user();
-        if (in_array(PermissionableSession::class, class_uses_recursive($user))) {
-            $authorizationClient = app()->make(AuthorizationClient::class);
-            $user->forceGetACLPermissions($request, $authorizationClient);
-        }
 
         return $next($request);
     }
