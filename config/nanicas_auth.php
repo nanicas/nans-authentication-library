@@ -20,7 +20,9 @@ return [
     'SESSION_CLIENT_AUTH_KEY' => 'nanicas_client_auth',
     'AUTHORIZATION_RESPONSE_KEY' => 'authorization_response',
     'AUTHENTICATION_RESPONSE_KEY' => 'authentication_response',
-    
+    'CONTRACT_ID_HEADER_KEY' => 'x-contrato-id',
+    'CONTRACT_KEY' => 'contract_id',
+
     'DEFAULT_PERSONAL_TOKEN_MODEL' => Nanicas\Auth\Frameworks\Laravel\Models\PersonalToken::class,
     'DEFAULT_AUTHORIZATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthorizationService::class,
     'DEFAULT_AUTHENTICATION_CLIENT' => Nanicas\Auth\Frameworks\Laravel\Services\ThirdPartyAuthenticationService::class,

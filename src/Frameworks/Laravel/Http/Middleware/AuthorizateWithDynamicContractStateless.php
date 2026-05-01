@@ -19,7 +19,8 @@ class AuthorizateWithDynamicContractStateless
      */
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
-        $contractId = $request->header('x-contrato-id');
+        $config = config(AuthHelper::CONFIG_FILE_NAME);
+        $contractId = $request->header($config['CONTRACT_ID_HEADER_KEY']);
 
         if (!$contractId) {
             return response()->json([
@@ -43,6 +44,7 @@ class AuthorizateWithDynamicContractStateless
         }
 
         $request->attributes->set($config['AUTHORIZATION_RESPONSE_KEY'], $response);
+        $request->attributes->set($config['CONTRACT_KEY'], $contractId);
 
         $this->bootGate($response['body']['response']);
 

@@ -147,4 +147,25 @@ class AuthHelper
 
         return $date;
     }
+
+    /**
+     * @param Request $request
+     * @param bool $forceTry
+     * @return string|null
+     */
+    public static function getContractIdFromRequest(Request $request, bool $forceTry = false): ?string
+    {
+        $config = config(self::CONFIG_FILE_NAME);
+
+        $hasInAttributes = $request->attributes->has($config['CONTRACT_KEY']);
+        if ($hasInAttributes) {
+            return $request->attributes->get($config['CONTRACT_KEY']);
+        }
+
+        if ($forceTry) {
+            return $request->header($config['CONTRACT_ID_HEADER_KEY']);
+        }
+
+        return null;
+    }
 }
