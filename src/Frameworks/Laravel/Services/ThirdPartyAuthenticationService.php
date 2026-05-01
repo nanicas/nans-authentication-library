@@ -9,11 +9,26 @@ use Nanicas\Auth\Contracts\AuthenticationClient;
 
 class ThirdPartyAuthenticationService extends ThirdPartyClient implements AuthenticationClient
 {
+    /**
+     * Fonte da requisição: 'request' (padrão), 'schedule', 'console', 'api'
+     */
+    protected string $source = 'request';
+
     public function __construct()
     {
         $config = config(AuthHelper::CONFIG_FILE_NAME);
 
         $this->baseAPI = $config['AUTHENTICATION_API_URL'];
+    }
+
+    /**
+     * Define a source da requisição
+     * Usado para chamadas via schedule, console ou API sem contexto de request HTTP
+     */
+    public function setSource(string $source): self
+    {
+        $this->source = $source;
+        return $this;
     }
 
     /**
@@ -169,6 +184,13 @@ class ThirdPartyAuthenticationService extends ThirdPartyClient implements Authen
         $token = '';
         $config = config(AuthHelper::CONFIG_FILE_NAME);
 
+        // Para sources que não são 'request' (schedule, console, api), 
+        // gera token diretamente via OAuth2 client credentials
+        if ($this->source !== 'request') {
+            return $this->generateClientAuthToken();
+        }
+
+        // Para requests HTTP normais, usa o método original
         if ($config['stateless']) {
             $statelessKey = AuthHelper::getAuthenticationResponseKey();
             return request()->attributes->get($statelessKey);
