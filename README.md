@@ -35,12 +35,14 @@ return [
     'AUTHENTICATION_CLIENT_ID' => env('NANICAS_AUTHENTICATION_CLIENT_ID'),
     'AUTHENTICATION_CLIENT_SECRET' => env('NANICAS_AUTHENTICATION_CLIENT_SECRET'),
     'AUTHENTICATION_API_URL' => env('NANICAS_AUTHENTICATION_API_URL'),
+    'AUTHENTICATION_API_URL_PUBLIC' => env('NANICAS_AUTHENTICATION_API_URL_PUBLIC'),
     'AUTHENTICATION_PERSONAL_TOKEN' => env('NANICAS_AUTHENTICATION_PERSONAL_TOKEN'),
 
     'PAINEL_API_URL' => env('NANICAS_PAINEL_API_URL'),
     'PAINEL_PERSONAL_TOKEN' => env('NANICAS_PAINEL_PERSONAL_TOKEN'),
 
     'AUTHORIZATION_API_URL' => env('NANICAS_AUTHORIZATION_API_URL'),
+    'AUTHORIZATION_API_URL_PUBLIC' => env('NANICAS_AUTHORIZATION_API_URL_PUBLIC'),
     'AUTHORIZATION_PERSONAL_TOKEN' => env('NANICAS_AUTHORIZATION_PERSONAL_TOKEN'),
 
     'HARD_CONTRACT_ID' => env('NANICAS_HARD_CONTRACT_ID'),
@@ -94,7 +96,7 @@ Caso queira personalizar os meios de autenticação, altere:
 
 ### Configurar a entidade de usuário
 
-Adicionar a coluna ID no "fillable" da Model que representa seu usuário autenticado:
+Adicionar a coluna `id` e `attributes` no `fillable` da Model que representa seu usuário autenticado, além do cast de `attributes` para `array`:
 
 ```php
 namespace App\Models;
@@ -104,8 +106,41 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable
 {
     protected $fillable = [
-        'id', // É necessário porque a API de autenticação retorna esse atributo e deve ser preenchido
+        'id',         // necessário porque a API de autenticação retorna esse atributo e deve ser preenchido
+        'attributes', // necessário para receber atributos customizados vindos do autenticador
+        // ...
+    ];
+
+    protected $casts = [
+        'attributes' => 'array', // garante que o JSON seja deserializado automaticamente
+    ];
 ```
+
+> **Atenção:** sem `'attributes'` no `fillable` e no `casts`, o campo será ignorado ao preencher a model via autenticação e chegará como string ao invés de array.
+
+#### Resposta do `/api/user` (autenticador)
+
+A rota `GET /api/user` do autenticador retorna o objeto do usuário autenticado. O campo `attributes` é um JSON livre utilizado para configurações específicas do usuário, como forçar a seleção automática de contrato no frontend:
+
+```json
+{
+    "id": 1,
+    "name": "José Victor",
+    "email": "jose@example.com",
+    "contract_id": 2,
+    "attributes": {
+        "fixed_contract_id": 2
+    },
+    "created_at": "2025-01-01T00:00:00.000000Z",
+    "updated_at": "2025-05-02T00:00:00.000000Z"
+}
+```
+
+**Casos de uso de `attributes`:**
+
+| Chave | Tipo | Descrição |
+|---|---|---|
+| `fixed_contract_id` | `int` | Quando presente, o frontend deve autoselecionar esse contrato sem exibir tela de seleção ao usuário |
 
 ## Adicionar Middlewares
 
