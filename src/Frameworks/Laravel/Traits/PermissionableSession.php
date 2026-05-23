@@ -42,16 +42,31 @@ trait PermissionableSession
         }
 
         $response = $client->retrieveByTokenAndContract($auth['access_token'], $auth['contract']['id']);
+
         if (!$response['status']) {
             $data = [
                 'permissions' => [],
                 'role' => null,
+                'state' => [
+                    'error' => 'invalid_status'
+                ]
             ];
         } else {
-            $data = [
-                'permissions' => $response['body']['response']['permissions'],
-                'role' => $response['body']['response']['role'],
-            ];
+            if (!$response['body']['status']) {
+                $data = [
+                    'permissions' => [],
+                    'role' => null,
+                    'state' => [
+                        'error' => 'invalid_body_status',
+                        'data' => $response['body']
+                    ]
+                ];
+            } else {
+                $data = [
+                    'permissions' => $response['body']['response']['permissions'],
+                    'role' => $response['body']['response']['role'],
+                ];
+            }
         }
 
         AuthHelper::attachInSession(
@@ -73,7 +88,11 @@ trait PermissionableSession
         $authService = app()->make(AuthenticationClient::class);
         $permissions = $this->getACLPermissions($request, $authService);
 
-        if (!array_key_exists('permissions', $permissions)) {
+        if (
+            !array_key_exists('permissions', $permissions)
+            || !is_array($permissions['permissions'])
+            || count($permissions['permissions']) === 0
+        ) {
             return false;
         }
 

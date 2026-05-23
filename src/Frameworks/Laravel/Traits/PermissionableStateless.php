@@ -26,12 +26,26 @@ trait PermissionableStateless
             $data = [
                 'permissions' => [],
                 'role' => null,
+                'state' => [
+                    'error' => 'invalid_status'
+                ]
             ];
         } else {
-            $data = [
-                'permissions' => $response['body']['response']['permissions'],
-                'role' => $response['body']['response']['role'],
-            ];
+            if (!$response['body']['status']) {
+                $data = [
+                    'permissions' => [],
+                    'role' => null,
+                    'state' => [
+                        'error' => 'invalid_body_status',
+                        'data' => $response['body']
+                    ]
+                ];
+            } else {
+                $data = [
+                    'permissions' => $response['body']['response']['permissions'],
+                    'role' => $response['body']['response']['role'],
+                ];
+            }
         }
 
         return $data;
@@ -45,7 +59,12 @@ trait PermissionableStateless
     public function hasPermission(Request $request, string $permission)
     {
         $permissions = $this->getACLPermissions($request);
-        if (!array_key_exists('permissions', $permissions)) {
+
+        if (
+            !array_key_exists('permissions', $permissions)
+            || !is_array($permissions['permissions'])
+            || count($permissions['permissions']) === 0
+        ) {
             return false;
         }
 
